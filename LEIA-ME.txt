@@ -1,8 +1,0 @@
-NOSSA CAFETERIA - versão PWA
-
-1. Hospede esta pasta inteira em um endereço https (GitHub Pages, Netlify ou Cloudflare Pages).
-2. No iPhone, abra o endereço no Safari.
-3. Toque em Compartilhar e depois em "Adicionar à Tela de Início".
-4. Abra o jogo pelo ícone. Depois da primeira abertura ele funciona sem internet.
-
-Para atualizar o jogo: substitua os arquivos e troque 'cafeteria-v1' por 'cafeteria-v2' no sw.js.

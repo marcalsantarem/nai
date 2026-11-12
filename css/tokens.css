@@ -1,0 +1,61 @@
+/* Tokens da Direção de arte (especificação). Único lugar de cores, fontes, raios e sombras. */
+:root {
+  /* Cores da interface */
+  --ink: #4a2f27;            /* Tinta: contornos, texto, ícones */
+  --cream: #fff6e6;          /* Creme: painéis, cartões, botões neutros */
+  --dusk: #403f7a;           /* Entardecer: fundo */
+  --dusk-light: #4b4a8c;     /* Entardecer claro: círculo atrás da cena */
+  --night: #2a2954;          /* Noite: sombra dura, trilho do progresso */
+  --yellow: #ffc94d;         /* Amarelo: ativo, preço, moeda */
+  --coin-edge: #d9912b;      /* Borda da moeda */
+  --green: #7ed58a;          /* Verde: ação principal */
+  --coral: #ff8f7e;          /* Coral: detalhes */
+  --mint: #9ad9c2;           /* Menta: progresso, selo de visitas */
+  --text-muted: #7a5a4e;     /* Texto secundário sobre creme */
+  --text-on-dusk: #dcdaf7;   /* Texto sobre o fundo */
+  --disabled: #a9a7cf;       /* Botão indisponível (texto em Noite) */
+  --light-dot: #fff3c4;      /* Pontos de luz do fundo (mockup) */
+
+  /* Cores da sala */
+  --wall-right: #a8dcc9;
+  --wall-right-stripe: #b6e4d3;
+  --wall-left: #97cfbb;
+  --wall-left-stripe: #a3d6c4;
+  --wainscot: #f6e7cc;
+  --floor-a: #ecc194;
+  --floor-b: #e2b181;
+  --wood: #c98a5a;
+  --wood-dark: #8a5a3c;
+  --window: #3d4283;
+  --contact-shadow: #2a1b3d; /* usar a 16% */
+
+  /* Fontes */
+  --font-display: 'Baloo 2', 'Trebuchet MS', sans-serif;
+  --font-body: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+
+  /* Contorno */
+  --line: 3px;
+  --outline: var(--line) solid var(--ink);
+  --icon-stroke: 2.2;
+
+  /* Raios */
+  --radius-button: 16px;
+  --radius-card: 22px;
+  --radius-nav: 24px;
+  --radius-round: 999px;
+
+  /* Sombras duras */
+  --shadow-button: 0 4px 0 var(--night);
+  --shadow-button-ink: 0 4px 0 var(--ink);
+  --shadow-card: 0 5px 0 var(--night);
+  --press-offset: 3px;
+  --shadow-pressed: 0 1px 0 var(--night);
+  --shadow-pressed-ink: 0 1px 0 var(--ink);
+
+  /* Medidas */
+  --touch-min: 44px;
+  --safe-top: 56px;
+  --safe-bottom: 28px;
+  --gutter: 16px;
+  --column-max: 430px;
+}

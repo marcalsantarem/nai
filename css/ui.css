@@ -1,0 +1,328 @@
+/* Layout e componentes da interface. Valores vêm de tokens.css. */
+
+/* ---------- Base e gestos do sistema ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--dusk);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  position: fixed;
+  inset: 0;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+h1, h2, h3, p { margin: 0; }
+button { font: inherit; color: inherit; }
+svg { display: block; flex: none; }
+
+/* ---------- Fundo: Entardecer, círculo claro e pontos de luz ---------- */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.backdrop__circle {
+  position: absolute;
+  left: calc(50% - 265px);
+  top: 170px;
+  width: 530px;
+  height: 530px;
+  border-radius: 50%;
+  background: var(--dusk-light);
+}
+.backdrop__dot {
+  position: absolute;
+  left: calc(50% + var(--x));
+  top: var(--y);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--light-dot);
+  opacity: 0.7;
+}
+.backdrop__dot--big { width: 6px; height: 6px; }
+
+/* ---------- Coluna central ---------- */
+.app {
+  position: relative;
+  height: 100%;
+  max-width: var(--column-max);
+  margin: 0 auto;
+  padding:
+    max(var(--safe-top), env(safe-area-inset-top))
+    env(safe-area-inset-right)
+    max(var(--safe-bottom), env(safe-area-inset-bottom))
+    env(safe-area-inset-left);
+  display: flex;
+  flex-direction: column;
+}
+.screen {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* Áreas roláveis dentro da tela não arrastam a página. */
+.scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---------- Tipografia ---------- */
+.title-screen { font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1; color: var(--cream); }
+.title-card { font-family: var(--font-display); font-weight: 700; font-size: 19px; line-height: 1.1; }
+.label { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: var(--text-muted); }
+.caption { font-size: 12px; font-weight: 700; color: var(--text-on-dusk); text-wrap: balance; }
+.text-muted { font-size: 13px; font-weight: 800; color: var(--text-muted); }
+
+/* ---------- Botão ---------- */
+.btn {
+  min-height: var(--touch-min);
+  height: 52px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: var(--outline);
+  border-radius: var(--radius-button);
+  background: var(--cream);
+  box-shadow: var(--shadow-button);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 60ms, box-shadow 60ms;
+}
+.btn--primary { background: var(--green); box-shadow: var(--shadow-button-ink); }
+.btn--neutral { background: var(--cream); }
+.btn:disabled {
+  background: var(--disabled);
+  color: var(--night);
+  box-shadow: var(--shadow-button);
+  cursor: default;
+}
+
+/* Pressionado: desce 3 px e a sombra vai a 1 px. */
+.btn:not(:disabled):active,
+.icon-btn:active {
+  transform: translateY(var(--press-offset));
+  box-shadow: var(--shadow-pressed);
+}
+.btn--primary:not(:disabled):active { box-shadow: var(--shadow-pressed-ink); }
+
+/* ---------- Botão de ícone redondo ---------- */
+.icon-btn {
+  width: var(--touch-min);
+  height: var(--touch-min);
+  flex: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream);
+  border: var(--outline);
+  border-radius: 50%;
+  box-shadow: var(--shadow-button);
+  cursor: pointer;
+  transition: transform 60ms, box-shadow 60ms;
+}
+
+/* ---------- Cartão ---------- */
+.card {
+  position: relative;
+  padding: 12px;
+  background: var(--cream);
+  border: var(--outline);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* ---------- Pílula (contador) e selo ---------- */
+.pill {
+  height: var(--touch-min);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 0 8px;
+  background: var(--cream);
+  border: var(--outline);
+  border-radius: var(--radius-round);
+  box-shadow: var(--shadow-button);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 19px;
+  color: var(--ink);
+}
+.badge {
+  flex: none;
+  padding: 2px 10px;
+  border-radius: var(--radius-round);
+  background: var(--mint);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+/* ---------- Moeda ---------- */
+.coin {
+  display: block;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--yellow);
+  border: var(--line) solid var(--coin-edge);
+}
+.coin--sm { width: 16px; height: 16px; }
+
+/* ---------- Selo de nível ---------- */
+.level {
+  width: 50px;
+  height: 50px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--yellow);
+  border: var(--outline);
+  box-shadow: var(--shadow-button);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  line-height: 1;
+}
+.level__label { font-size: 10px; font-weight: 700; }
+.level__value { font-size: 20px; font-weight: 800; }
+
+/* ---------- Barra de progresso ---------- */
+.progress {
+  height: 14px;
+  display: flex;
+  overflow: hidden;
+  background: var(--night);
+  border: var(--outline);
+  border-radius: 8px;
+}
+.progress__fill { width: var(--value, 0%); background: var(--mint); }
+
+/* ---------- Barra de navegação ---------- */
+.nav {
+  position: relative;
+  margin: 0 var(--gutter);
+  height: 72px;
+  flex: none;
+  padding: 3px 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--cream);
+  border: var(--outline);
+  border-radius: var(--radius-nav);
+  box-shadow: var(--shadow-card);
+}
+.nav__item {
+  flex: 1;
+  min-width: 0;
+  height: 60px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: transparent;
+  border: var(--line) solid transparent;
+  border-radius: var(--radius-button);
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 12px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.nav__item.is-active { background: var(--yellow); border-color: var(--ink); }
+
+/* ---------- Tela Cafeteria ---------- */
+.top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 var(--gutter);
+}
+.top__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.scene {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* A cena pode passar da coluna (a sala corta até 18 px das pontas). */
+.scene__canvas { display: block; flex: none; }
+
+.order {
+  margin: 0 var(--gutter) 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.order__portrait {
+  width: 60px;
+  height: 60px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 50%;
+  border: var(--outline);
+  background: var(--coral);
+}
+.order__portrait--empty { background: var(--disabled); }
+.order__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.order__price {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+/* Sem cliente: a linha do valor reserva o espaço para a cena não pular quando alguém chega. */
+.order__price.is-placeholder { visibility: hidden; }
+/* Sem cliente: reserva 2 linhas de título (altura do mockup, 111 px), como um pedido real a 360–390. */
+.order .title-card.is-waiting { min-height: 2.2em; display: flex; align-items: center; }
+.order__btn { flex: none; }
