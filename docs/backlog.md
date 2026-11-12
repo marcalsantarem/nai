@@ -9,7 +9,7 @@
 | T-001 | Ligar a pasta ao repositório, descartar o protótipo e preservar os ícones em `icons/` | P | AG00 | feita |
 | T-002 | Extrair o código-fonte legível do mockup para `docs/referencia/mockup-src/` (HTML da página e scripts de desenho) | P | AG03 (Arte) | feita (BRF-001) |
 | T-003 | Fontes locais: Baloo 2 e Nunito em `fonts/` com `OFL.txt` (extraídas do mockup ou do `google/fonts`) | P | AG05 (Plataforma) | feita (BRF-002) |
-| T-004 | Esqueleto: `index.html`, `css/tokens.css`, `css/ui.css`, `js/main.js` (laço rAF com dt ≤ 50 ms, troca de telas), coluna ≤ 430, áreas seguras, fundo Entardecer | M | AG02 (UI) | a fazer |
+| T-004 | Esqueleto: `index.html`, `css/tokens.css`, `css/ui.css`, `js/main.js` (laço rAF com dt ≤ 50 ms, troca de telas), coluna ≤ 430, áreas seguras, fundo Entardecer | M | AG02 (UI) | feita (BRF-004) |
 | T-005 | `js/iso.js`: projeção e inversa, caixa, cilindro, elipse, sombra de contato, paredes | M | AG03 (Arte) | a fazer |
 | T-006 | `js/art.js`: sala inicial completa do mockup, canvas com DPR até 3× | G | AG03 (Arte) | a fazer |
 | T-007 | Tela Cafeteria: topo (nível, nome, progresso, moedas, ajustes), cena, cartão “Aguardando o próximo cliente”, navegação | G | AG02 (UI) | a fazer |
