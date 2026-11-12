@@ -21,3 +21,5 @@ Ao mudar uma decisão, atualize esta tabela e, se for o caso, o `CLAUDE.md`.
 | 14 | Recadinhos do cliente especial | A definir | 4 a 8 frases do dono | Especificação |
 | 15 | Aparência da barista | A definir | Parecida com a Nai (cabelo, pele, roupa)? | Especificação |
 | 16 | Nome da cafeteria editável | A definir | Editável em Ajustes ou fixo em “Nai's Cafe” | Especificação |
+| 17 | Quadro-negro | Decidido | Mostra “Nai's Cafe”, como no critério de aceite (diverge do mockup, que mostra “Cardápio”) | Dono, 2026-11-12 |
+| 18 | Cartão sem cliente | Decidido | Título só “Aguardando” (a especificação dizia “Aguardando o próximo cliente”) | Dono, 2026-11-12 |

@@ -120,12 +120,19 @@ export function drawBunting(ctx, x, y) {
   });
 }
 
-// Quadro-negro do cardápio. (x, y) = canto superior esquerdo da moldura.
-export function drawChalkboard(ctx, x, y, title = 'Cardápio') {
+// Quadro-negro com o nome da casa. (x, y) = canto superior esquerdo da moldura.
+// O título reduz a fonte (a partir de 10px) até caber em 50px, com folga no painel de 58px.
+const CHALK_TITLE_MAX = 50;
+export function drawChalkboard(ctx, x, y, title = "Nai's Cafe") {
   at(ctx, x, y, () => {
     roundRect(ctx, 0, 0, 66, 56, 4, '#8a5a3c');
     roundRect(ctx, 4, 4, 58, 48, 2, '#2f423f');
-    ctx.font = `700 10px ${TITLE_FONT}`;
+    let size = 10;
+    ctx.font = `700 ${size}px ${TITLE_FONT}`;
+    while (size > 6 && ctx.measureText(title).width > CHALK_TITLE_MAX) {
+      size -= 0.5;
+      ctx.font = `700 ${size}px ${TITLE_FONT}`;
+    }
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = CREAM;
@@ -212,7 +219,7 @@ function drawRightWall(ctx, time) {
   wall(ctx, 'right', WALL_RIGHT);
   ctx.save();
   wallTransform(ctx, 'right');
-  drawChalkboard(ctx, 18, -112);
+  drawChalkboard(ctx, 18, -112, "Nai's Cafe");
   drawWindow(ctx, 100, -114, time);
   drawStringLights(ctx, 3, -121, time);
   ctx.restore();

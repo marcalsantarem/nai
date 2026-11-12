@@ -37,9 +37,11 @@ function progressInfo() {
   const span = NEXT_RECIPE.at - PREV_RECIPE_AT;
   const done = Math.min(span, DRINKS_SERVED - PREV_RECIPE_AT);
   const pct = Math.round((done / span) * 100);
+  // espaço inseparável no nome: evita "o" / "Mocha" órfão na última linha
+  const recipe = NEXT_RECIPE.name.replace(/ /g, ' ');
   const caption = left === 1
-    ? `Falta 1 bebida para liberar ${NEXT_RECIPE.name}`
-    : `Faltam ${left} bebidas para liberar ${NEXT_RECIPE.name}`;
+    ? `Falta 1 bebida para liberar ${recipe}`
+    : `Faltam ${left} bebidas para liberar ${recipe}`;
   return { pct, caption, done, span };
 }
 
@@ -65,7 +67,7 @@ function template() {
     <div class="order__portrait order__portrait--empty" aria-hidden="true"></div>
     <div class="order__info">
       <span class="label">PEDIDO</span>
-      <h2 class="title-card">Aguardando o próximo cliente</h2>
+      <h2 class="title-card is-waiting">Aguardando</h2>
       <div class="order__price is-placeholder" aria-hidden="true"><span class="coin coin--sm"></span><span>0 moedas</span></div>
     </div>
     <button class="btn btn--primary order__btn" disabled>Preparar</button>

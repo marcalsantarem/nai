@@ -16,6 +16,8 @@
 | T-008 | `js/version.js` (decisão 11) e versão visível no título da página ou em meta | P | AG05 (Plataforma) | feita (BRF-003) |
 | T-009 | Deploy no Netlify (decisão 9): já configurado pelo dono; conferir o site da `dev` depois da T-007 | P | AG00 | feita (site da dev servindo a versão atual) |
 | T-010 | Validação do M1 contra o mockup a 390 × 844 e em 360/430 | M | AG06 (QA) | feita (BRF-008): passa com ressalvas, ver docs/qa/qa-M1.md |
+| T-012 | QA D1: quadro-negro com “Nai's Cafe” (decisão 17) | P | AG03 (Arte) | feita (BRF-009) |
+| T-013 | QA D2 e D3: cartão vazio só “Aguardando” (decisão 18) e legenda do progresso sem palavra sozinha a 430 | P | AG02 (UI) | feita (BRF-010) |
 | T-011 | Fechamento do M1: versão, PR `dev` → `main`, tag v0.1.0 | P | AG00 | a fazer |
 
 Dependências: T-002 antes de T-005/T-006/T-007 · T-004 antes de T-007 · T-005 antes de T-006 · T-006 e T-007 antes de T-010.
