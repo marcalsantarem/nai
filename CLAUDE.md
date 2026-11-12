@@ -38,6 +38,7 @@ O Claude principal é o **AG00 (líder)** e o **único interlocutor do dono**. E
 | [docs/00_biblia_projeto.md](docs/00_biblia_projeto.md) | Bíblia: pitch, escopo do marco atual, time, regras. **Leia primeiro.** |
 | [docs/especificacao.md](docs/especificacao.md) | Especificação completa do jogo (fonte da verdade de mecânicas, conteúdo, cores, áudio, salvamento, PWA) |
 | [docs/referencia/mockup-mobile.html](docs/referencia/mockup-mobile.html) | Mockup visual obrigatório (4 telas). Pacote que se desempacota: `__bundler/manifest` (gzip+base64, inclui as fontes) e `__bundler/template` (HTML em JSON). Abra no navegador; não leia inteiro |
+| [docs/referencia/mockup-src/](docs/referencia/mockup-src/) | Mockup extraído e legível, uma tela por arquivo, com índice no README. **Use este, não o pacote.** A arte é SVG estático (não há funções de desenho): `iso.js`/`art.js` são reconstruídos a partir das coordenadas |
 | [docs/backlog.md](docs/backlog.md) · [docs/roadmap.md](docs/roadmap.md) | Tasks (T-NNN) e marcos/versões |
 | [docs/decisoes.md](docs/decisoes.md) | Decisões numeradas com estado. **Atualize quando algo for decidido.** |
 | [docs/agentes/](docs/agentes/) · `docs/briefings/` | Instruções dos agentes e briefings |
@@ -52,4 +53,4 @@ Nai's Cafe: jogo cozy de cafeteria, sem falha, presente pessoal para uma jogador
 - **Estrutura prevista:** `index.html`, `css/{tokens,ui}.css`, `js/{main,state,data,iso,art,sim,audio}.js`, `js/screens/*.js`, `manifest.webmanifest`, `sw.js`, `icons/`, `fonts/`.
 - **Isométrico:** `x = (gx − gy) × 30`, `y = (gx + gy) × 15 − altura`, grade 6 × 6, desenho em ordem crescente de `gx + gy`; toque volta à grade pela projeção inversa. Miniaturas e retratos usam as mesmas funções de `art.js`.
 - **Salvamento:** `localStorage`, chave `nais-cafe-v1`, a cada mudança, tolerando falha.
-- **Publicação:** Netlify, sem build. Configuração em [docs/decisoes.md](docs/decisoes.md) [A definir].
+- **Publicação:** Netlify, sem build. Push na `dev` → https://dev--naicafe.netlify.app; merge na `main` → https://naicafe.netlify.app (decisão 9).

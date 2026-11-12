@@ -13,9 +13,9 @@ Ao mudar uma decisão, atualize esta tabela e, se for o caso, o `CLAUDE.md`.
 | 6 | Stack | Decidido | HTML, CSS, JS puro (módulos ES), sem framework e sem build | Especificação |
 | 7 | Referências | Decidido | `docs/especificacao.md` e `docs/referencia/mockup-mobile.html` (nome do mockup troca para “Nai's Cafe”) | Especificação |
 | 8 | Protótipo antigo | Decidido | Descartado; os ícones ficam em `icons/` (mesmo caminho previsto na especificação). O código continua no histórico do git | Dono, 2026-11-12 |
-| 9 | Deploy | A definir | Proposta: Netlify publica a `main` em produção e a `dev` como branch deploy, sem build (publish dir = raiz) | — |
+| 9 | Deploy | Decidido | Já configurado no Netlify, sem build: push na `dev` atualiza https://dev--naicafe.netlify.app; merge de PR na `main` atualiza https://naicafe.netlify.app | Dono, 2026-11-12 |
 | 10 | Marcos | Proposta | Os marcos seguem as 5 etapas da especificação (ver [roadmap.md](roadmap.md)) | AG00 |
-| 11 | Arquivo de versão | Proposta | `js/version.js` exporta a versão; `sw.js` usa a mesma versão no nome do cache | AG00 |
+| 11 | Arquivo de versão | Proposta | `js/version.js` é o único lugar da versão. No M5 o AG05 propõe virar script clássico (`self.VERSION`) lido pelo `sw.js` via `importScripts` | AG00, AG05 |
 | 12 | Time de agentes | Proposta | AG01–AG06, ver [00_biblia_projeto.md](00_biblia_projeto.md) | AG00 |
 | 13 | Bebidas favoritas da Nai | A definir | Entram no cardápio ou viram favorita de um cliente? | Especificação |
 | 14 | Recadinhos do cliente especial | A definir | 4 a 8 frases do dono | Especificação |
