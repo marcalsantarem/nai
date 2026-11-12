@@ -14,8 +14,8 @@
 | T-006 | `js/art.js`: sala inicial completa do mockup, canvas com DPR até 3× | G | AG03 (Arte) | feita (BRF-006) |
 | T-007 | Tela Cafeteria: topo (nível, nome, progresso, moedas, ajustes), cena, cartão “Aguardando o próximo cliente”, navegação | G | AG02 (UI) | feita (BRF-007) |
 | T-008 | `js/version.js` (decisão 11) e versão visível no título da página ou em meta | P | AG05 (Plataforma) | feita (BRF-003) |
-| T-009 | Deploy no Netlify (decisão 9): já configurado pelo dono; conferir o site da `dev` depois da T-007 | P | AG00 | a fazer |
-| T-010 | Validação do M1 contra o mockup a 390 × 844 e em 360/430 | M | AG06 (QA) | a fazer |
+| T-009 | Deploy no Netlify (decisão 9): já configurado pelo dono; conferir o site da `dev` depois da T-007 | P | AG00 | feita (site da dev servindo a versão atual) |
+| T-010 | Validação do M1 contra o mockup a 390 × 844 e em 360/430 | M | AG06 (QA) | feita (BRF-008): passa com ressalvas, ver docs/qa/qa-M1.md |
 | T-011 | Fechamento do M1: versão, PR `dev` → `main`, tag v0.1.0 | P | AG00 | a fazer |
 
 Dependências: T-002 antes de T-005/T-006/T-007 · T-004 antes de T-007 · T-005 antes de T-006 · T-006 e T-007 antes de T-010.
