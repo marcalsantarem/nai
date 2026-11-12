@@ -18,7 +18,7 @@
 | T-010 | Validação do M1 contra o mockup a 390 × 844 e em 360/430 | M | AG06 (QA) | feita (BRF-008, BRF-011): passa, ver docs/qa/qa-M1.md |
 | T-012 | QA D1: quadro-negro com “Nai's Cafe” (decisão 17) | P | AG03 (Arte) | feita (BRF-009) |
 | T-013 | QA D2 e D3: cartão vazio só “Aguardando” (decisão 18) e legenda do progresso sem palavra sozinha a 430 | P | AG02 (UI) | feita (BRF-010) |
-| T-011 | Fechamento do M1: versão, PR `dev` → `main`, tag v0.1.0 | P | AG00 | em andamento (versão 0.1.0 na dev; aguarda PR e tag) |
+| T-011 | Fechamento do M1: versão, PR `dev` → `main`, tag v0.1.0 | P | AG00 | feita (PR #1, tag v0.1.0) |
 
 Dependências: T-002 antes de T-005/T-006/T-007 · T-004 antes de T-007 · T-005 antes de T-006 · T-006 e T-007 antes de T-010.
 
