@@ -17,9 +17,9 @@ Ao mudar uma decisão, atualize esta tabela e, se for o caso, o `CLAUDE.md`.
 | 10 | Marcos | Proposta | Os marcos seguem as 5 etapas da especificação (ver [roadmap.md](roadmap.md)) | AG00 |
 | 11 | Arquivo de versão | Proposta | `js/version.js` é o único lugar da versão. No M5 o AG05 propõe virar script clássico (`self.VERSION`) lido pelo `sw.js` via `importScripts` | AG00, AG05 |
 | 12 | Time de agentes | Proposta | AG01–AG06, ver [00_biblia_projeto.md](00_biblia_projeto.md) | AG00 |
-| 13 | Bebidas favoritas da Nai | Decidido / Proposta | Decidido: café com leite batido e cappuccino (já existe). Proposta: “Café com leite batido” vira a 8ª receita (passos e preço a definir na T-015) | Dono, 2026-11-12 |
+| 13 | Bebidas favoritas da Nai | Decidido | Café com leite batido e cappuccino (já existe). “Café com leite batido” é a 8ª receita: Moer, Espresso, Espuma, Leite; 12 moedas; libera com 10 bebidas. O cardápio passa a ter 8 receitas (critério de aceite “7 receitas” vira 8) | Dono, 2026-11-12 |
 | 14 | Recadinhos do cliente especial | A definir | 4 a 8 frases; o dono escreve depois. Trava a T-035 | Dono, 2026-11-12 |
-| 15 | Aparência da barista | Decidido | Parecida com a Nai: pele levemente morena, cabelo cacheado (cor do cabelo a confirmar) | Dono, 2026-11-12 |
+| 15 | Aparência da barista | Decidido | Parecida com a Nai: pele levemente morena, cabelo cacheado castanho-escuro | Dono, 2026-11-12 |
 | 16 | Nome da cafeteria editável | Decidido | Editável em Ajustes (até 24 caracteres; padrão “Nai's Cafe”) | Dono, 2026-11-12 |
 | 17 | Quadro-negro | Decidido | Mostra “Nai's Cafe”, como no critério de aceite (diverge do mockup, que mostra “Cardápio”) | Dono, 2026-11-12 |
 | 18 | Cartão sem cliente | Decidido | Título só “Aguardando” (a especificação dizia “Aguardando o próximo cliente”) | Dono, 2026-11-12 |

@@ -26,8 +26,8 @@ Dependências: T-002 antes de T-005/T-006/T-007 · T-004 antes de T-007 · T-005
 
 | ID | Título | Tam. | Dono | Estado |
 |---|---|---|---|---|
-| T-014 | Contratos do M2 em `docs/arquitetura.md`: forma do estado, API da simulação (entrada, fila, pedido, entrega, lugar, saída), entidades que a cena desenha e eventos para as telas | M | AG01 (Gameplay) | a fazer |
-| T-015 | `js/data.js`: 7 receitas (preço, passos, marco de liberação), ingredientes (camada, altura, cor), constantes do ciclo (chegada 7–14 s, 1,7 ladrilho/s, mesa 14–26 s, 40 moedas, gorjeta 0–2, +1 com desenho), nomes brasileiros comuns e aparências de clientes comuns (decisão 19); receita “Café com leite batido” se a decisão 13 for aprovada | P | AG01 (Gameplay) | a fazer |
+| T-014 | Contratos do M2 em `docs/arquitetura.md`: forma do estado, API da simulação (entrada, fila, pedido, entrega, lugar, saída), entidades que a cena desenha e eventos para as telas | M | AG01 (Gameplay) | feita (BRF-012) |
+| T-015 | `js/data.js`: 8 receitas (decisão 13) (preço, passos, marco de liberação), ingredientes (camada, altura, cor), constantes do ciclo (chegada 7–14 s, 1,7 ladrilho/s, mesa 14–26 s, 40 moedas, gorjeta 0–2, +1 com desenho), nomes brasileiros comuns e aparências de clientes comuns (decisão 19) | P | AG01 (Gameplay) | a fazer |
 | T-016 | `js/icons.js`: ícones de traço dos 8 ingredientes, das bebidas e de voltar/visto, a partir do mockup (`02-preparo.html`), usáveis em HTML e no canvas | M | AG02 (UI) | a fazer |
 | T-017 | `js/state.js` (estado em memória: moedas, servidas, contagem) e `js/sim.js`: chegada pela porta, caminho até a fila (máx. 3), pedido do primeiro com receitas liberadas, entrega com pagamento, lugar livre na mesa ou saída com o copo, coração e saída | G | AG01 (Gameplay) | a fazer |
 | T-018 | Arte dos clientes em `js/art.js`: aparência variada, andar, sentar, copo na mão, balão de pedido (ícone + nome da bebida), coração; barista parecida com a Nai (decisão 15); `drawScene` passa a receber as entidades da simulação e mantém a ordem por profundidade | G | AG03 (Arte) | a fazer |
@@ -61,7 +61,7 @@ Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 →
 
 | ID | Título | Tam. | Dono | Estado |
 |---|---|---|---|---|
-| T-033 | Nível (marcos 2…40) e liberação de receitas (6, 14, 24); barra de progresso real | P | AG01 (Gameplay) | a fazer |
+| T-033 | Nível (marcos 2…40) e liberação de receitas (6, 10, 14, 24); barra de progresso real | P | AG01 (Gameplay) | a fazer |
 | T-034 | Clientes da casa: 45% de chance, favorita, falas em sequência, Bia só depois do Mocha, visitas salvas | M | AG01 (Gameplay) | a fazer |
 | T-035 | Cliente especial a cada 6 clientes, com recadinho (depende da decisão 14) | P | AG01 (Gameplay) | bloqueada (aguarda recadinhos do dono) |
 | T-036 | Plantas com sede a cada 60–120 s (regar = 2 moedas); gato dorme, passeia, senta 5–11 s e volta | M | AG01 (Gameplay) | a fazer |
@@ -71,7 +71,7 @@ Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 →
 | T-040 | Tela Clientes da casa: cartões, selo de visitas, “Cliente misterioso” tracejado, “N de 5” | M | AG02 (UI) | a fazer |
 | T-041 | Tela Cardápio: receitas com preço e passos; bloqueadas tracejadas com “Libera com N bebidas” | M | AG02 (UI) | a fazer |
 | T-042 | Ajustes: painel deslizante, música e chuva, nome da cafeteria editável (decisão 16), “Recomeçar do zero” em dois toques | M | AG02 (UI) | a fazer |
-| T-043 | Validação do M4: 7 receitas liberam nos marcos, clientes da casa, rituais, áudio e telas novas | M | AG06 (QA) | a fazer |
+| T-043 | Validação do M4: 8 receitas liberam nos marcos, clientes da casa, rituais, áudio e telas novas | M | AG06 (QA) | a fazer |
 | T-044 | Fechamento do M4: versão 0.4.0, PR, tag v0.4.0 | P | AG00 | a fazer |
 
 Ordem: (T-033 ∥ T-038) → (T-034 ∥ T-037) → (T-035 ∥ T-036) → T-039 → T-040 → T-041 → T-042 → T-043 → T-044.
