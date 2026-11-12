@@ -160,3 +160,4 @@ BARISTA_LOOK = { skin, hair, shirt: MINT, pants, hairStyle: 'curly', apron: true
 4. Voltar do Preparo guarda os passos (decisão 24).
 5. Marcos de receita: 6, 10, 14, 24 (decisão 25).
 6. [A definir] no M3: ladrilho de cada móvel de `INITIAL_LAYOUT` ao virar item salvo.
+7. [A definir] no M3: o ladrilho (1,2), onde fica o 2º da fila desde a T-053, deve entrar em `reservedTiles`.

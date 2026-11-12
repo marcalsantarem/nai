@@ -72,14 +72,15 @@ export const LEVELS = [2, 4, 6, 10, 14, 19, 24, 30, 40];
 // Pontos em gx/gy contínuos. dir: sentido para onde o assento está virado.
 export const ROOM = {
   door: { gx: 0.15, gy: 4.9 },
-  entry: { gx: 1.5, gy: 4.5 },
+  entry: { gx: 1.3, gy: 4.3 }, // acima da caminha do gato
+  // Fila no canto esquerdo do balcão, fora da coluna dos banquinhos na tela (T-053).
   queue: [
-    { gx: 2.5, gy: 2.4 }, // Q1, em frente ao balcão
-    { gx: 2.3, gy: 3.2 }, // Q2 (≥ 0,9 do banquinho 1)
-    { gx: 2.1, gy: 4.0 }, // Q3 (≥ 0,9 do banquinho 1)
+    { gx: 2.0, gy: 2.0 }, // Q1, em frente ao balcão, entre os dois banquinhos na tela
+    { gx: 1.1, gy: 2.6 }, // Q2, ponta esquerda do balcão
+    { gx: 1.0, gy: 3.25 }, // Q3, em direção à porta
   ],
   hub: { gx: 3.5, gy: 2.5 },
-  exit: { gx: 1.5, gy: 3.0 },
+  exit: { gx: 2.1, gy: 4.6 }, // à esquerda do banquinho 1, fora do tapete
   barista: { gx: 2.2, gy: 0.42 },
   seats: [
     { id: 'stool1', gx: 3.05, gy: 3.8, dir: '+gx' },
