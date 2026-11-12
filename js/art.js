@@ -3,9 +3,10 @@
 // na tela (normalmente project(gx, gy)). As mesmas funções servem cena, miniaturas e retratos.
 
 import {
-  project, shade, poly, ellipse, circle, roundRect, contactShadow,
+  project, shade, poly, ellipse, circle, roundRect, roundRectPath, contactShadow,
   tile, box, faceRect, cylinder, wall, wallTransform, sortByDepth, GRID,
 } from './iso.js';
+import { ICONS, drawIcon } from './icons.js';
 
 export const SCENE_VIEWBOX = { x: -186, y: -132, w: 372, h: 330 };
 
@@ -417,74 +418,202 @@ export function drawCatBed(ctx, x, y, { cat = true, time = 0 } = {}) {
 }
 
 // ---------- Personagens ----------
-// look: { skin, hair, shirt, pants, hairStyle: 'short' | 'long' | 'bun', apron, seated }
+// look: { skin, hair, shirt, pants, hairStyle: 'short' | 'long' | 'bun' | 'curly', apron, seated }
 
 export const LOOKS = {
-  barista: { skin: '#f6d2b8', hair: '#7a4b32', shirt: MINT, pants: '#5b4a7a', hairStyle: 'long', apron: true },
-  // Aparências dos clientes vistos no mockup (para o M2):
+  // Decisão 15: pele levemente morena, cabelo cacheado castanho-escuro.
+  barista: { skin: '#e2ad84', hair: '#3b2419', shirt: MINT, pants: '#5b4a7a', hairStyle: 'curly', apron: true },
+  // Aparências dos clientes vistos no mockup:
   marina: { skin: '#e9b98f', hair: '#8a4b3a', shirt: YELLOW, pants: '#5b4a7a', hairStyle: 'long' },
   lucia: { skin: '#f6d2b8', hair: '#e6e1dc', shirt: '#c9b6f0', pants: '#5b4a7a', hairStyle: 'bun' },
   teo: { skin: '#c98d62', hair: '#2a2540', shirt: BLUE, pants: '#5b4a7a', hairStyle: 'short' },
 };
 
-// Personagem. (x, y) = centro da sombra (no chão ou no assento, se seated).
-export function drawCharacter(ctx, look, x = 0, y = 0) {
-  const { skin, hair, shirt, pants = '#5b4a7a', hairStyle = 'short', apron = false, seated = false } = look;
+// Lado para onde o personagem olha na tela: +1 direita ('se' = +gx, 'ne' = -gy), -1 esquerda.
+// As direções de costas (ne/nw) são desenhadas de frente, espelhadas (arquitetura, seção 5).
+function facingOf(dir) {
+  return dir === 'sw' || dir === 'nw' ? -1 : 1;
+}
+
+// Cachos: volume de trás (atrás do corpo) e coroa (sobre a cabeça). [dx, dy, r] a partir do centro da cabeça.
+const CURLS_BACK = [[-10.5, 2.5, 4.4], [10.5, 2.5, 4.4], [-9.5, 7.5, 3.9], [9.5, 7.5, 3.9], [-6, 10, 3.4], [6, 10, 3.4]];
+const CURLS_CROWN = [[-10.4, -2.5, 4], [-9, -7.5, 4.3], [-5, -10.6, 4.4], [0, -11.8, 4.5], [5, -10.6, 4.4], [9, -7.5, 4.3], [10.4, -2.5, 4]];
+const CURLS_FRINGE = [[-6.2, -5.6, 2.9], [-2, -6.6, 3], [2.2, -6.6, 3], [6.3, -5.6, 2.9]];
+
+function curls(ctx, x, y, list, color) {
+  ctx.beginPath();
+  for (const [dx, dy, r] of list) {
+    ctx.moveTo(x + dx + r, y + dy);
+    ctx.arc(x + dx, y + dy, r, 0, Math.PI * 2);
+  }
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+// Cabelo que fica atrás do corpo e da cabeça. (x, y) = centro da cabeça.
+function drawHairBack(ctx, x, y, { hair, hairStyle }) {
+  if (hairStyle === 'long') roundRect(ctx, x - 12, y - 7, 24, 25, 9, hair);
+  else if (hairStyle === 'bun') circle(ctx, x, y - 12, 4.6, hair);
+  else if (hairStyle === 'curly') curls(ctx, x, y, CURLS_BACK, shade(hair, 0.86));
+}
+
+// Copo para viagem na mão. (x, y) = centro da mão.
+function drawHandCup(ctx, x, y) {
+  roundRect(ctx, x - 3.2, y - 7.5, 6.4, 8, 1.4, CREAM);
+  ctx.strokeStyle = '#ccc4b8';
+  ctx.lineWidth = 0.6;
+  ctx.stroke();
+  roundRect(ctx, x - 3.2, y - 4.6, 6.4, 2, 0.6, '#8a5a3c');
+  roundRect(ctx, x - 3.6, y - 8.6, 7.2, 2, 1, CORAL);
+}
+
+// Personagem. (x, y) = centro da sombra (no chão, ou no assento se sentado).
+// opts: pose 'walk' | 'stand' | 'sit', dir 'se' | 'sw' | 'nw' | 'ne', walk (ladrilhos andados), time, cup.
+export function drawCharacter(ctx, look, x = 0, y = 0, opts = {}) {
+  const { skin, shirt, pants = '#5b4a7a', apron = false } = look;
+  const { pose = look.seated ? 'sit' : 'stand', dir = 'se', walk, time = 0, cup = false } = opts;
+  const seated = pose === 'sit';
+  const f = facingOf(dir);
   contactShadow(ctx, x, y, 11, 5.5);
-  const up = seated ? -11 : 0; // sentado: tronco desce sobre o assento
-  const b = y + up;
+
+  // Passada: fase pelos ladrilhos andados (ou pelo tempo); o corpo sobe e desce de leve.
+  let swing = 0, bob = 0;
+  if (pose === 'walk') {
+    const ph = (walk ?? time * 1.7) * Math.PI * 2;
+    swing = Math.sin(ph);
+    bob = -Math.abs(swing) * 1.3;
+  }
+  const b = y + (seated ? -11 : 0) + bob; // base do tronco
   if (seated) {
     roundRect(ctx, x - 7, y - 21, 14, 7, 3, pants);
   } else {
-    roundRect(ctx, x - 6.5, y - 11, 5.5, 11, 2.5, pants);
-    roundRect(ctx, x + 1, y - 11, 5.5, 11, 2.5, pants);
-    ellipse(ctx, x - 3.7, y - 0.5, 3.6, 2, INK);
-    ellipse(ctx, x + 3.7, y - 0.5, 3.6, 2, INK);
+    const liftL = Math.max(0, swing) * 2.6, liftR = Math.max(0, -swing) * 2.6;
+    const legH = 11 + (y - b);
+    roundRect(ctx, x - 6.5, b - 11, 5.5, legH - liftL, 2.5, pants);
+    roundRect(ctx, x + 1, b - 11, 5.5, legH - liftR, 2.5, pants);
+    ellipse(ctx, x - 3.7, y - 0.5 - liftL, 3.6, 2, INK);
+    ellipse(ctx, x + 3.7, y - 0.5 - liftR, 3.6, 2, INK);
   }
   const hy = b - 40; // centro da cabeça
-  if (hairStyle === 'long') roundRect(ctx, x - 12, b - 47, 24, 25, 9, hair);
-  if (hairStyle === 'bun') circle(ctx, x, hy - 12, 4.6, hair);
+  drawHairBack(ctx, x, hy, look);
   circle(ctx, x - 10, b - 22, 3.3, shirt);
   circle(ctx, x + 10, b - 22, 3.3, shirt);
-  circle(ctx, x - 10.6, b - 17.5, 2.4, skin);
-  circle(ctx, x + 10.6, b - 17.5, 2.4, skin);
   roundRect(ctx, x - 9.5, b - 31, 19, 22, 8, shirt);
   if (apron) {
     roundRect(ctx, x - 6.5, b - 26, 13, 16, 3, CREAM);
     roundRect(ctx, x - 3, b - 20, 6, 4, 1.5, CORAL);
   }
-  drawHead(ctx, x, hy, look);
+  // Mãos balançam ao contrário das pernas; a do copo fica um pouco erguida e parada.
+  const handL = b - 17.5 + (cup && f < 0 ? -2 : swing * 1.2);
+  const handR = b - 17.5 + (cup && f > 0 ? -2 : -swing * 1.2);
+  if (cup) drawHandCup(ctx, x + f * 10.6, f > 0 ? handR : handL);
+  circle(ctx, x - 10.6, handL, 2.4, skin);
+  circle(ctx, x + 10.6, handR, 2.4, skin);
+  drawHead(ctx, x, hy, look, f * 1.3);
 }
 
-// Cabeça (serve também para retratos). (x, y) = centro da cabeça.
-export function drawHead(ctx, x, y, { skin, hair }) {
+// Cabeça (serve também para retratos). (x, y) = centro da cabeça. turn desloca o rosto (px) para o lado que olha.
+export function drawHead(ctx, x, y, { skin, hair, hairStyle = 'short' }, turn = 0) {
+  const curly = hairStyle === 'curly';
+  if (curly) curls(ctx, x, y, CURLS_CROWN, hair);
   circle(ctx, x, y, 10.5, skin);
-  // calota com franja
+  // calota com franja (nos cachos, franja de cachinhos)
   ctx.beginPath();
   ctx.moveTo(x - 10.8, y - 1);
   ctx.arc(x, y - 1, 10.8, Math.PI, 0);
-  ctx.quadraticCurveTo(x + 5.8, y - 6, x, y - 5.2);
-  ctx.quadraticCurveTo(x - 5.8, y - 6, x - 10.8, y - 1);
+  if (curly) {
+    ctx.quadraticCurveTo(x + 5.8, y - 4.5, x, y - 4.5);
+    ctx.quadraticCurveTo(x - 5.8, y - 4.5, x - 10.8, y - 1);
+  } else {
+    ctx.quadraticCurveTo(x + 5.8, y - 6, x, y - 5.2);
+    ctx.quadraticCurveTo(x - 5.8, y - 6, x - 10.8, y - 1);
+  }
   ctx.closePath();
   ctx.fillStyle = hair;
   ctx.fill();
-  ellipse(ctx, x - 3.6, y + 1.5, 1.3, 1.8, INK);
-  ellipse(ctx, x + 3.6, y + 1.5, 1.3, 1.8, INK);
-  circle(ctx, x - 6.6, y + 5, 2, CORAL, 0.6);
-  circle(ctx, x + 6.6, y + 5, 2, CORAL, 0.6);
+  if (curly) curls(ctx, x, y, CURLS_FRINGE, hair);
+  const fx = x + turn;
+  ellipse(ctx, fx - 3.6, y + 1.5, 1.3, 1.8, INK);
+  ellipse(ctx, fx + 3.6, y + 1.5, 1.3, 1.8, INK);
+  circle(ctx, fx - 6.6, y + 5, 2, CORAL, 0.6);
+  circle(ctx, fx + 6.6, y + 5, 2, CORAL, 0.6);
   ctx.beginPath();
-  ctx.moveTo(x - 1.8, y + 5.2);
-  ctx.quadraticCurveTo(x, y + 7, x + 1.8, y + 5.2);
+  ctx.moveTo(fx - 1.8, y + 5.2);
+  ctx.quadraticCurveTo(fx, y + 7, fx + 1.8, y + 5.2);
   strokeLine(ctx, INK, 0.9);
+}
+
+// Retrato do cartão do pedido (viewBox 64 do mockup), em caixa size x size a partir de (0, 0).
+export function drawPortrait(ctx, look, size = 64, { background = '#ffd9cf' } = {}) {
+  const k = 15 / 10.5; // cabeça de raio 15 no retrato
+  ctx.save();
+  ctx.scale(size / 64, size / 64);
+  if (background) {
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, 64, 64);
+  }
+  if (look.hairStyle === 'long') roundRect(ctx, 13, 13, 38, 44, 16, look.hair);
+  else at(ctx, 32, 30, () => drawHairBack(ctx, 0, 0, look), k);
+  roundRect(ctx, 12, 47, 40, 26, 13, look.shirt);
+  roundRect(ctx, 27, 40, 10, 10, 3, shade(look.skin, 0.92));
+  at(ctx, 32, 30, () => drawHead(ctx, 0, 0, look), k);
+  ctx.restore();
+}
+
+// ---------- Balão do pedido e coração ----------
+
+const BUBBLE_FONT = `700 12px ${TITLE_FONT}`;
+
+// Balão com ícone da bebida e nome. (x, y) = ponta do rabicho.
+export function drawOrderBubble(ctx, x, y, label, iconId = 'cup') {
+  ctx.font = BUBBLE_FONT;
+  const tw = ctx.measureText(label).width; // sem cache: a largura muda quando a fonte termina de carregar
+  const w = Math.max(60, Math.round(32 + tw));
+  const left = x - w / 2, top = y - 29;
+  roundRectPath(ctx, left, top, w, 23, 10);
+  ctx.fillStyle = CREAM;
+  ctx.fill();
+  strokeLine(ctx, INK, 2);
+  poly(ctx, [x - 5, y - 7, x + 5, y - 7, x, y], CREAM);
+  ctx.beginPath();
+  ctx.moveTo(x - 5, y - 6.2); ctx.lineTo(x, y + 0.8); ctx.lineTo(x + 5, y - 6.2);
+  strokeLine(ctx, INK, 2);
+  drawIcon(ctx, iconId, left + 13.5, top + 11, 15, INK);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = INK;
+  ctx.fillText(label, left + 23, top + 16);
+}
+
+let heartPath = null;
+
+// Coração subindo e sumindo. (x, y) = ponto de partida (acima da cabeça); p = progresso 0..1.
+export function drawHeart(ctx, x, y, p) {
+  if (p == null || p < 0 || p > 1) return;
+  if (!heartPath) heartPath = new Path2D(ICONS.heart.d);
+  const a = p < 0.15 ? p / 0.15 : 1 - (p - 0.15) / 0.85;
+  const size = 14 + 3 * p;
+  withAlpha(ctx, a, () => {
+    ctx.save();
+    ctx.translate(x - size / 2, y - 24 * p - size / 2);
+    ctx.scale(size / 24, size / 24);
+    ctx.fillStyle = CORAL;
+    ctx.fill(heartPath);
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.stroke(heartPath);
+    ctx.restore();
+  });
 }
 
 // ---------- Composição inicial ----------
 
 // Objetos da sala em grade; desenhados em ordem crescente de gx + gy.
 // As luminárias pendentes ficam penduradas sobre o balcão: profundidade logo após ele.
+// A barista não está aqui: vem como entidade da simulação (arquitetura, seção 5).
 export const INITIAL_LAYOUT = [
   { id: 'bookshelf', gx: 0.26, gy: 2.1, draw: drawBookshelf },
-  { id: 'barista', gx: 2.2, gy: 0.42, draw: (ctx, x, y) => drawCharacter(ctx, LOOKS.barista, x, y) },
   { id: 'counter', gx: 2.25, gy: 1.3, draw: drawCounter },
   { id: 'pendant1', gx: 1.5, gy: 1.3, h: 75, depth: 3.56, draw: drawPendantLamp },
   { id: 'pendant2', gx: 2.9, gy: 1.3, h: 75, depth: 3.57, draw: drawPendantLamp },
@@ -500,8 +629,15 @@ export const INITIAL_LAYOUT = [
 
 const SORTED_LAYOUT = sortByDepth(INITIAL_LAYOUT);
 
+// Centro da cabeça de uma entidade, a partir do y de project(gx, gy).
+function headY(e, y) {
+  return y - 40 - (e.pose === 'sit' ? 11 : 0);
+}
+
 // Desenha a sala inteira em coordenadas do viewBox. O chamador já aplicou escala, DPR e translação.
-export function drawScene(ctx, { time = 0 } = {}) {
+// entities: lista de sim.entities() (arquitetura, seção 5). Móveis e personagens na mesma ordem de profundidade;
+// balões e corações por último, fora dessa ordem.
+export function drawScene(ctx, { time = 0, entities = [] } = {}) {
   ctx.save();
   drawFloor(ctx);
   drawLeftWall(ctx);
@@ -510,9 +646,18 @@ export function drawScene(ctx, { time = 0 } = {}) {
   drawDoorMat(ctx, 0.12, 4.35);
   const rug = project(3.7, 3.8);
   drawRoundRug(ctx, rug.x, rug.y);
-  for (const it of SORTED_LAYOUT) {
+  const items = entities.length ? sortByDepth(SORTED_LAYOUT.concat(entities)) : SORTED_LAYOUT;
+  for (const it of items) {
     const p = project(it.gx, it.gy, it.h || 0);
-    it.draw(ctx, p.x, p.y, time);
+    if (it.draw) it.draw(ctx, p.x, p.y, time);
+    else drawCharacter(ctx, it.look, p.x, p.y, { pose: it.pose, dir: it.dir, walk: it.walk, time, cup: it.cup });
+  }
+  for (const e of entities) {
+    if (!e.bubble && e.heart == null) continue;
+    const p = project(e.gx, e.gy);
+    const top = headY(e, p.y) - 18;
+    if (e.heart != null) drawHeart(ctx, p.x, top, e.heart);
+    if (e.bubble) drawOrderBubble(ctx, p.x, top, e.bubble.label);
   }
   ctx.restore();
 }
