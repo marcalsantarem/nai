@@ -42,3 +42,40 @@ A tela Cafeteria reproduz o mockup (`docs/referencia/mockup-src/01-cafeteria.htm
 - Estado pressionado dos botões (desce 3 px, sombra 1 px) conferido só no CSS, não visualmente.
 - Telas de altura curta (ex.: 360 × 640) e paisagem em celular não foram testadas.
 - Comparação visual com o mockup foi por medidas e capturas lado a lado, não por diff de pixels.
+
+## Reconferência (BRF-011)
+
+**Data:** 2026-11-12 · **Agente:** AG06 · **Código:** commit `305a036` (decisões 17 e 18) · **Versão:** `0.0.0`
+
+### Veredito: **passa**
+
+D1, D2 e D3 corrigidos; nenhuma regressão encontrada. Restam só itens informativos (D4, D5) e as limitações de ambiente abaixo.
+
+### Como foi testado
+
+- Local: `python -m http.server 8766` (porta diferente da 8123); navegador embutido a 390 × 844, 360 × 780 e 430 × 932; medidas com `getBoundingClientRect` e quebras de linha por `Range.getClientRects`.
+- Publicado: https://dev--naicafe.netlify.app. `index.html`, `css/ui.css`, `js/art.js`, `js/screens/cafeteria.js`, `js/main.js` e `js/version.js` com SHA-1 igual ao local (sem CR). Medido e capturado a 390 × 844.
+
+### Resultado
+
+| # | Item | Resultado |
+|---|---|---|
+| D1 | Quadro-negro “Nai's Cafe” dentro da moldura | **Corrigido.** Texto “Nai's Cafe” visível no quadro (capturas a 360, 390 e 430, local e publicado). Em Baloo 2 700 10 px mede 44 px, abaixo do limite de 50 px do código, então não há redução de fonte; sobram ~7 px de cada lado no painel de 58 px. |
+| D2 | Cartão sem cliente: só “Aguardando”, centralizado, 111 px | **Corrigido.** Título “Aguardando” em 1 linha; caixa do título 42 px (2,2 em) com o texto (30 px) centrado na vertical (6 px acima e abaixo). Cartão **111 px** a 360 (16,555 328×111), 390 (16,619 358×111) e 430 (16,707 398×111). Publicado a 390: igual. |
+| D3 | Legenda em 2 linhas sem palavra sozinha | **Corrigido.** “Faltam 6 bebidas” / “para liberar o Mocha” a 360, 390 e 430 (altura 32 px), local e publicado. |
+| — | Regressão: topo | OK. Header 0,56 com 76 px de altura nas 3 larguras; selo, barra, moedas e ajustes como no QA anterior. |
+| — | Regressão: cena | OK. Canvas a 390 em −25,180 440×391 (igual ao QA anterior); sala completa, sem clientes. |
+| — | Regressão: navegação | OK. Nav a 390 em 16,744 358×72 (igual); 4 itens, Café ativo. |
+| — | Rolagem horizontal | OK. `scrollWidth = clientWidth` a 360, 390 e 430. |
+| — | Console | OK. Publicado: nenhuma mensagem. Local: só o aviso `willReadFrequently` causado pelo meu `getImageData`. |
+| — | Animação | **Por código.** No painel o `requestAnimationFrame` não dispara (1 quadro em 2 s, como no QA anterior). Chamando `update(0.05)` da tela Cafeteria 20× no canvas real, mudam pixels nas regiões da janela (chuva), do varal de luzinhas e da caminha (gato). |
+
+### Observação (info)
+
+- D6 — A 360, “Aguardando” ocupa 105 px numa coluna de 104 px (sobra 0,3 px sobre os 12 px de espaço até o botão). Sem efeito visível a 360; abaixo de ~355 px de largura a palavra passaria da coluna. Não exige ação no M1.
+
+### Não testado / limitações
+
+- Animação ao vivo (chuva, luzinhas, gato) não observada: o painel não roda `requestAnimationFrame`. Conferir num navegador visível ou no iPhone.
+- iPhone real, Safari iOS, PWA, telas curtas e paisagem: como no QA anterior.
+- Publicado medido só a 390; 360 e 430 conferidos no local (arquivos idênticos).
