@@ -22,6 +22,24 @@
 
 Dependências: T-002 antes de T-005/T-006/T-007 · T-004 antes de T-007 · T-005 antes de T-006 · T-006 e T-007 antes de T-010.
 
+## M2 — v0.2.0 — Ciclo principal
+
+| ID | Título | Tam. | Dono | Estado |
+|---|---|---|---|---|
+| T-014 | Contratos do M2 em `docs/arquitetura.md`: forma do estado, API da simulação (entrada, fila, pedido, entrega, lugar, saída), entidades que a cena desenha e eventos para as telas | M | AG01 (Gameplay) | a fazer |
+| T-015 | `js/data.js`: 7 receitas (preço, passos, marco de liberação), ingredientes (camada, altura, cor), constantes do ciclo (chegada 7–14 s, 1,7 ladrilho/s, mesa 14–26 s, 40 moedas, gorjeta 0–2, +1 com desenho), nomes e aparências de clientes comuns | P | AG01 (Gameplay) | a fazer |
+| T-016 | `js/icons.js`: ícones de traço dos 8 ingredientes, das bebidas e de voltar/visto, a partir do mockup (`02-preparo.html`), usáveis em HTML e no canvas | M | AG02 (UI) | a fazer |
+| T-017 | `js/state.js` (estado em memória: moedas, servidas, contagem) e `js/sim.js`: chegada pela porta, caminho até a fila (máx. 3), pedido do primeiro com receitas liberadas, entrega com pagamento, lugar livre na mesa ou saída com o copo, coração e saída | G | AG01 (Gameplay) | a fazer |
+| T-018 | Arte dos clientes em `js/art.js`: aparência variada, andar, sentar, copo na mão, balão de pedido (ícone + nome da bebida), coração; `drawScene` passa a receber as entidades da simulação e mantém a ordem por profundidade | G | AG03 (Arte) | a fazer |
+| T-019 | Tela Cafeteria ligada à simulação: cartão com retrato, “Nome quer um X”, valor e “Preparar”; toque no primeiro cliente abre o Preparo; moedas e barra de progresso atualizam | M | AG02 (UI) | a fazer |
+| T-020 | Tela Preparo (`js/screens/preparo.js`) igual ao mockup: topo, passos, palco com a xícara e camadas animadas (~0,8 s), dica, grade 2 × 4 com o próximo em destaque, erro sem punição (balança e repete a dica), desenho na espuma (coração, flor, estrela), “Entregar”, voltar sem perder o cliente | G | AG02 (UI) | a fazer |
+| T-021 | Validação do M2: 4 receitas iniciais preparáveis, 20 clientes seguidos sem travar e sem forma de perder, telas Cafeteria e Preparo contra o mockup | M | AG06 (QA) | a fazer |
+| T-022 | Fechamento do M2: versão 0.2.0, PR `dev` → `main`, tag v0.2.0 | P | AG00 | a fazer |
+
+Ordem: T-014 → (T-015 ∥ T-016) → (T-017 ∥ T-018) → T-019 → T-020 → T-021 → T-022. T-019 e T-020 são do mesmo agente e mexem em `css/ui.css`, então rodam em série.
+
+Fora do M2 (ficam para o M3/M4): salvar progresso, liberar Mocha, Chocolate quente e Café gelado, nível, clientes da casa e áudio. A barra de progresso conta as servidas, mas a liberação de receitas só entra no M4.
+
 ## Próximos marcos
 
-M2–M5: tasks criadas quando o marco começar.
+M3–M5: tasks criadas quando o marco começar.
