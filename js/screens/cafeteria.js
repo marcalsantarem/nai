@@ -1,5 +1,6 @@
 // Tela Cafeteria (tela inicial): topo, cena isométrica, cartão do pedido e navegação.
 import { VERSION } from '../version.js';
+import { iconSvg } from '../icons.js';
 
 // Valores iniciais provisórios. O estado real vem do AG01 (M2).
 const LEVEL = 1;
@@ -13,17 +14,6 @@ const ROOM_HALF_WIDTH = 180;
 const MAX_ROOM_CUT = 18;
 const MAX_DPR = 3;
 const CONTRACT_VIEWBOX = { x: -186, y: -132, w: 372, h: 330 }; // contrato com art.js, até ele carregar
-
-const icon = (paths, size = 24) =>
-  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
-
-const ICONS = {
-  settings: '<circle cx="12" cy="12" r="6.3"/><circle cx="12" cy="12" r="2.4"/><path d="M12 2.6v3.1M12 18.3v3.1M2.6 12h3.1M18.3 12h3.1M5.4 5.4l2.2 2.2M16.4 16.4l2.2 2.2M5.4 18.6l2.2-2.2M16.4 7.6l2.2-2.2"/>',
-  cafe: '<path d="M4 10l1.5-5h13L20 10M5 10.5V19h14v-8.5M10 19v-5h4v5M4 10a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0A2.7 2.7 0 0 0 20 10"/>',
-  decor: '<path d="M5 11V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3M3 13a2 2 0 0 1 4 0v2h10v-2a2 2 0 0 1 4 0v5H3zM6 18v2M18 18v2"/>',
-  menu: '<path d="M5 9h11v4a5.5 5.5 0 0 1-11 0zM16 10h1.5a2.5 2.5 0 0 1 0 5h-1.9M4 20h13M8.5 3.5c-1 1.2 1 1.8 0 3M12.5 3.5c-1 1.2 1 1.8 0 3"/>',
-  guests: '<circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9" r="2.4"/><path d="M3 19c.6-3.4 3-5 6-5s5.4 1.6 6 5M16.5 14.2c2.4.2 4 1.6 4.5 4.3"/>',
-};
 
 const NAV = [
   ['cafe', 'Café'],
@@ -56,7 +46,7 @@ function template() {
       <p class="caption">${p.caption}</p>
     </div>
     <div class="pill" aria-label="${COINS} moedas"><span class="coin" aria-hidden="true"></span><span>${COINS}</span></div>
-    <button class="icon-btn" aria-label="Ajustes" data-action="settings">${icon(ICONS.settings, 22)}</button>
+    <button class="icon-btn" aria-label="Ajustes" data-action="settings">${iconSvg('settings', { size: 22 })}</button>
   </header>
 
   <div class="scene">
@@ -75,7 +65,7 @@ function template() {
 
   <nav class="nav" aria-label="Navegação principal">
     ${NAV.map(([id, label], i) =>
-      `<button class="nav__item${i === 0 ? ' is-active' : ''}" data-nav="${id}"${i === 0 ? ' aria-current="page"' : ''}>${icon(ICONS[id])}<span>${label}</span></button>`
+      `<button class="nav__item${i === 0 ? ' is-active' : ''}" data-nav="${id}"${i === 0 ? ' aria-current="page"' : ''}>${iconSvg(id)}<span>${label}</span></button>`
     ).join('')}
   </nav>
 `;
