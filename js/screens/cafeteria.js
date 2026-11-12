@@ -1,5 +1,18 @@
-// PROVISÓRIO (T-004): amostra dos componentes nas posições do mockup.
-// A T-007 substitui este conteúdo pela tela Cafeteria real.
+// Tela Cafeteria (tela inicial): topo, cena isométrica, cartão do pedido e navegação.
+import { VERSION } from '../version.js';
+
+// Valores iniciais provisórios. O estado real vem do AG01 (M2).
+const LEVEL = 1;
+const COINS = 40;
+const DRINKS_SERVED = 0;
+const NEXT_RECIPE = { name: 'o Mocha', at: 6 }; // primeira receita nova aos 6
+const PREV_RECIPE_AT = 0;
+
+// Cena: o viewBox chega de art.js; a sala (paredes de -180 a 180) pode cortar até 18 px de cada ponta.
+const ROOM_HALF_WIDTH = 180;
+const MAX_ROOM_CUT = 18;
+const MAX_DPR = 3;
+const CONTRACT_VIEWBOX = { x: -186, y: -132, w: 372, h: 330 }; // contrato com art.js, até ele carregar
 
 const icon = (paths, size = 24) =>
   `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
@@ -19,63 +32,127 @@ const NAV = [
   ['guests', 'Clientes'],
 ];
 
-const TEMPLATE = `
-  <header style="position:relative;display:flex;align-items:center;gap:10px;padding:0 var(--gutter)">
-    <div class="level"><span class="level__label">nível</span><span class="level__value">3</span></div>
-    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px">
+function progressInfo() {
+  const left = Math.max(0, NEXT_RECIPE.at - DRINKS_SERVED);
+  const span = NEXT_RECIPE.at - PREV_RECIPE_AT;
+  const done = Math.min(span, DRINKS_SERVED - PREV_RECIPE_AT);
+  const pct = Math.round((done / span) * 100);
+  const caption = left === 1
+    ? `Falta 1 bebida para liberar ${NEXT_RECIPE.name}`
+    : `Faltam ${left} bebidas para liberar ${NEXT_RECIPE.name}`;
+  return { pct, caption, done, span };
+}
+
+function template() {
+  const p = progressInfo();
+  return `
+  <header class="top">
+    <div class="level"><span class="level__label">nível</span><span class="level__value">${LEVEL}</span></div>
+    <div class="top__info">
       <h1 class="title-screen">Nai's Cafe</h1>
-      <div class="progress" role="img" aria-label="Progresso: 4 de 6 bebidas" style="--value:66%"><div class="progress__fill"></div></div>
-      <p class="caption">Faltam 2 bebidas para liberar o Mocha</p>
+      <div class="progress" role="img" aria-label="Progresso: ${p.done} de ${p.span} bebidas para a próxima receita" style="--value:${p.pct}%"><div class="progress__fill"></div></div>
+      <p class="caption">${p.caption}</p>
     </div>
-    <div class="pill"><span class="coin" aria-hidden="true"></span><span>128</span></div>
-    <button class="icon-btn" aria-label="Ajustes">${icon(ICONS.settings, 22)}</button>
+    <div class="pill" aria-label="${COINS} moedas"><span class="coin" aria-hidden="true"></span><span>${COINS}</span></div>
+    <button class="icon-btn" aria-label="Ajustes" data-action="settings">${icon(ICONS.settings, 22)}</button>
   </header>
 
-  <div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:0 var(--gutter)">
-    <p class="caption">(cena isométrica: T-007)</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
-      <button class="btn btn--neutral">Neutro</button>
-      <button class="btn" disabled>Desativado</button>
-    </div>
-    <span class="badge">5 visitas</span>
+  <div class="scene">
+    <canvas class="scene__canvas" role="img" aria-label="Cafeteria em vista isométrica"></canvas>
   </div>
 
-  <section class="card" aria-label="Pedido atual" style="margin:0 var(--gutter) 14px;display:flex;align-items:center;gap:12px">
-    <div aria-hidden="true" style="width:60px;height:60px;flex:none;border-radius:50%;border:var(--outline);background:var(--coral)"></div>
-    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+  <section class="card order" aria-label="Pedido atual">
+    <div class="order__portrait order__portrait--empty" aria-hidden="true"></div>
+    <div class="order__info">
       <span class="label">PEDIDO</span>
-      <h2 class="title-card">Marina quer um Latte</h2>
-      <div class="text-muted" style="display:flex;align-items:center;gap:6px">
-        <span class="coin coin--sm" aria-hidden="true"></span><span>11 moedas</span>
-      </div>
+      <h2 class="title-card">Aguardando o próximo cliente</h2>
+      <div class="order__price is-placeholder" aria-hidden="true"><span class="coin coin--sm"></span><span>0 moedas</span></div>
     </div>
-    <button class="btn btn--primary" style="flex:none">Preparar</button>
+    <button class="btn btn--primary order__btn" disabled>Preparar</button>
   </section>
 
   <nav class="nav" aria-label="Navegação principal">
     ${NAV.map(([id, label], i) =>
-      `<button class="nav__item${i === 0 ? ' is-active' : ''}" data-nav="${id}">${icon(ICONS[id])}<span>${label}</span></button>`
+      `<button class="nav__item${i === 0 ? ' is-active' : ''}" data-nav="${id}"${i === 0 ? ' aria-current="page"' : ''}>${icon(ICONS[id])}<span>${label}</span></button>`
     ).join('')}
   </nav>
 `;
+}
 
 let root = null;
+let sceneEl = null;
+let canvas = null;
+let ctx = null;
+let art = null; // módulo art.js, quando existir
+let fontsReady = false;
+let resizeObs = null;
+let time = 0;
+let view = null; // { cssW, cssH, dpr, scale }
 
-function onNav(e) {
+// Tamanho da cena: a sala ocupa a largura da coluna cortando 18 px de cada ponta
+// (a 390 px dá os 440 × 390 do mockup); reduz se não couber na altura.
+function layoutCanvas() {
+  if (!canvas || !sceneEl) return;
+  const vb = art ? art.SCENE_VIEWBOX : CONTRACT_VIEWBOX;
+  const areaW = sceneEl.clientWidth;
+  const areaH = sceneEl.clientHeight;
+  const byWidth = (areaW + 2 * MAX_ROOM_CUT) / (2 * ROOM_HALF_WIDTH);
+  const maxByHeight = areaH / vb.h;
+  const scale = Math.max(0.1, Math.min(byWidth, maxByHeight));
+  const cssW = vb.w * scale;
+  const cssH = vb.h * scale;
+  const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+  canvas.style.width = `${cssW}px`;
+  canvas.style.height = `${cssH}px`;
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  view = { cssW, cssH, dpr, scale };
+}
+
+function draw() {
+  if (!ctx || !art || !fontsReady || !view) return;
+  const vb = art.SCENE_VIEWBOX;
+  const k = (canvas.width / vb.w);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.setTransform(k, 0, 0, canvas.height / vb.h, -vb.x * k, -vb.y * (canvas.height / vb.h));
+  art.drawScene(ctx, { time });
+}
+
+function onClick(e) {
   const item = e.target.closest('.nav__item');
   if (!item) return;
-  root.querySelectorAll('.nav__item').forEach((b) => b.classList.toggle('is-active', b === item));
+  // Café já está ativo; os outros itens ainda não têm ação (T-007).
 }
 
 export default {
   enter(el) {
     root = el;
-    root.innerHTML = TEMPLATE;
-    root.addEventListener('click', onNav);
+    document.documentElement.dataset.version = VERSION;
+    root.innerHTML = template();
+    root.addEventListener('click', onClick);
+    sceneEl = root.querySelector('.scene');
+    canvas = root.querySelector('.scene__canvas');
+    ctx = canvas.getContext('2d');
+    resizeObs = new ResizeObserver(layoutCanvas);
+    resizeObs.observe(sceneEl);
+    document.fonts.ready.then(() => { fontsReady = true; });
+    // art.js é do AG03; se ainda não existir, a cena fica vazia sem erro.
+    import('../art.js')
+      .then((mod) => {
+        if (!root || typeof mod.drawScene !== 'function' || !mod.SCENE_VIEWBOX) return;
+        art = mod;
+        layoutCanvas();
+      })
+      .catch(() => { console.info('art.js indisponível: cena vazia.'); });
   },
   exit() {
-    root.removeEventListener('click', onNav);
-    root = null;
+    if (resizeObs) resizeObs.disconnect();
+    if (root) root.removeEventListener('click', onClick);
+    root = sceneEl = canvas = ctx = view = resizeObs = null;
   },
-  update(dt) {},
+  update(dt) {
+    time += dt;
+    draw();
+  },
 };

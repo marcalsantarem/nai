@@ -263,3 +263,64 @@ svg { display: block; flex: none; }
   cursor: pointer;
 }
 .nav__item.is-active { background: var(--yellow); border-color: var(--ink); }
+
+/* ---------- Tela Cafeteria ---------- */
+.top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 var(--gutter);
+}
+.top__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.scene {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* A cena pode passar da coluna (a sala corta até 18 px das pontas). */
+.scene__canvas { display: block; flex: none; }
+
+.order {
+  margin: 0 var(--gutter) 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.order__portrait {
+  width: 60px;
+  height: 60px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 50%;
+  border: var(--outline);
+  background: var(--coral);
+}
+.order__portrait--empty { background: var(--disabled); }
+.order__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.order__price {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+/* Sem cliente: a linha do valor reserva o espaço para a cena não pular quando alguém chega. */
+.order__price.is-placeholder { visibility: hidden; }
+.order__btn { flex: none; }
