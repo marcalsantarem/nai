@@ -27,11 +27,11 @@ Dependências: T-002 antes de T-005/T-006/T-007 · T-004 antes de T-007 · T-005
 | ID | Título | Tam. | Dono | Estado |
 |---|---|---|---|---|
 | T-014 | Contratos do M2 em `docs/arquitetura.md`: forma do estado, API da simulação (entrada, fila, pedido, entrega, lugar, saída), entidades que a cena desenha e eventos para as telas | M | AG01 (Gameplay) | a fazer |
-| T-015 | `js/data.js`: 7 receitas (preço, passos, marco de liberação), ingredientes (camada, altura, cor), constantes do ciclo (chegada 7–14 s, 1,7 ladrilho/s, mesa 14–26 s, 40 moedas, gorjeta 0–2, +1 com desenho), nomes e aparências de clientes comuns | P | AG01 (Gameplay) | a fazer |
+| T-015 | `js/data.js`: 7 receitas (preço, passos, marco de liberação), ingredientes (camada, altura, cor), constantes do ciclo (chegada 7–14 s, 1,7 ladrilho/s, mesa 14–26 s, 40 moedas, gorjeta 0–2, +1 com desenho), nomes brasileiros comuns e aparências de clientes comuns (decisão 19); receita “Café com leite batido” se a decisão 13 for aprovada | P | AG01 (Gameplay) | a fazer |
 | T-016 | `js/icons.js`: ícones de traço dos 8 ingredientes, das bebidas e de voltar/visto, a partir do mockup (`02-preparo.html`), usáveis em HTML e no canvas | M | AG02 (UI) | a fazer |
 | T-017 | `js/state.js` (estado em memória: moedas, servidas, contagem) e `js/sim.js`: chegada pela porta, caminho até a fila (máx. 3), pedido do primeiro com receitas liberadas, entrega com pagamento, lugar livre na mesa ou saída com o copo, coração e saída | G | AG01 (Gameplay) | a fazer |
-| T-018 | Arte dos clientes em `js/art.js`: aparência variada, andar, sentar, copo na mão, balão de pedido (ícone + nome da bebida), coração; `drawScene` passa a receber as entidades da simulação e mantém a ordem por profundidade | G | AG03 (Arte) | a fazer |
-| T-019 | Tela Cafeteria ligada à simulação: cartão com retrato, “Nome quer um X”, valor e “Preparar”; toque no primeiro cliente abre o Preparo; moedas e barra de progresso atualizam | M | AG02 (UI) | a fazer |
+| T-018 | Arte dos clientes em `js/art.js`: aparência variada, andar, sentar, copo na mão, balão de pedido (ícone + nome da bebida), coração; barista parecida com a Nai (decisão 15); `drawScene` passa a receber as entidades da simulação e mantém a ordem por profundidade | G | AG03 (Arte) | a fazer |
+| T-019 | Tela Cafeteria ligada à simulação: cartão com retrato, “Nome quer um X”, valor e “Preparar”; toque no primeiro cliente abre o Preparo; moedas e barra de progresso atualizam (barra para em 6, decisão 20) | M | AG02 (UI) | a fazer |
 | T-020 | Tela Preparo (`js/screens/preparo.js`) igual ao mockup: topo, passos, palco com a xícara e camadas animadas (~0,8 s), dica, grade 2 × 4 com o próximo em destaque, erro sem punição (balança e repete a dica), desenho na espuma (coração, flor, estrela), “Entregar”, voltar sem perder o cliente | G | AG02 (UI) | a fazer |
 | T-021 | Validação do M2: 4 receitas iniciais preparáveis, 20 clientes seguidos sem travar e sem forma de perder, telas Cafeteria e Preparo contra o mockup | M | AG06 (QA) | a fazer |
 | T-022 | Fechamento do M2: versão 0.2.0, PR `dev` → `main`, tag v0.2.0 | P | AG00 | a fazer |
@@ -63,14 +63,14 @@ Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 →
 |---|---|---|---|---|
 | T-033 | Nível (marcos 2…40) e liberação de receitas (6, 14, 24); barra de progresso real | P | AG01 (Gameplay) | a fazer |
 | T-034 | Clientes da casa: 45% de chance, favorita, falas em sequência, Bia só depois do Mocha, visitas salvas | M | AG01 (Gameplay) | a fazer |
-| T-035 | Cliente especial a cada 6 clientes, com recadinho (depende da decisão 14) | P | AG01 (Gameplay) | a fazer |
+| T-035 | Cliente especial a cada 6 clientes, com recadinho (depende da decisão 14) | P | AG01 (Gameplay) | bloqueada (aguarda recadinhos do dono) |
 | T-036 | Plantas com sede a cada 60–120 s (regar = 2 moedas); gato dorme, passeia, senta 5–11 s e volta | M | AG01 (Gameplay) | a fazer |
 | T-037 | Arte: aparência dos 5 clientes da casa e do especial, balão da gota, gato andando e sentado, fala do cliente | M | AG03 (Arte) | a fazer |
 | T-038 | Áudio: chuva, música e efeitos por Web Audio; começa no toque e volta ao retornar ao app | M | AG04 (Áudio) | a fazer |
 | T-039 | Toques na cena: planta com sede rega, gato solta coração | P | AG02 (UI) | a fazer |
 | T-040 | Tela Clientes da casa: cartões, selo de visitas, “Cliente misterioso” tracejado, “N de 5” | M | AG02 (UI) | a fazer |
 | T-041 | Tela Cardápio: receitas com preço e passos; bloqueadas tracejadas com “Libera com N bebidas” | M | AG02 (UI) | a fazer |
-| T-042 | Ajustes: painel deslizante, música e chuva, nome da cafeteria (decisão 16), “Recomeçar do zero” em dois toques | M | AG02 (UI) | a fazer |
+| T-042 | Ajustes: painel deslizante, música e chuva, nome da cafeteria editável (decisão 16), “Recomeçar do zero” em dois toques | M | AG02 (UI) | a fazer |
 | T-043 | Validação do M4: 7 receitas liberam nos marcos, clientes da casa, rituais, áudio e telas novas | M | AG06 (QA) | a fazer |
 | T-044 | Fechamento do M4: versão 0.4.0, PR, tag v0.4.0 | P | AG00 | a fazer |
 
