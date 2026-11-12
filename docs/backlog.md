@@ -40,6 +40,53 @@ Ordem: T-014 → (T-015 ∥ T-016) → (T-017 ∥ T-018) → T-019 → T-020 →
 
 Fora do M2 (ficam para o M3/M4): salvar progresso, liberar Mocha, Chocolate quente e Café gelado, nível, clientes da casa e áudio. A barra de progresso conta as servidas, mas a liberação de receitas só entra no M4.
 
-## Próximos marcos
+## M3 — v0.3.0 — Decoração
 
-M3–M5: tasks criadas quando o marco começar.
+| ID | Título | Tam. | Dono | Estado |
+|---|---|---|---|---|
+| T-023 | Contratos da decoração em `docs/arquitetura.md`: ocupação da grade, itens de chão e de parede, áreas reservadas, estoque, formato salvo | P | AG01 (Gameplay) | a fazer |
+| T-024 | `js/data.js`: 17 itens (onde, preço, observações), 5 cores de parede e 3 pisos | P | AG01 (Gameplay) | a fazer |
+| T-025 | Regras: comprar, colocar, mover, guardar no estoque, ocupação (tapete por baixo, 1 espaço de parede), reservados, limite da caminha, mesa nova = +2 lugares na simulação | M | AG01 (Gameplay) | a fazer |
+| T-026 | Salvamento em `localStorage` (`nais-cafe-v1`): moedas, servidas, contagem, parede, piso, itens, estoque; tolerante a falha | M | AG01 (Gameplay) | a fazer |
+| T-027 | Arte dos 17 itens em `js/art.js`; a sala passa a ser montada a partir do estado (não fixa); 5 cores de parede e 3 pisos | G | AG03 (Arte) | a fazer |
+| T-028 | Miniaturas da loja com as mesmas funções de desenho | M | AG03 (Arte) | a fazer |
+| T-029 | Tela Decorar: cena reduzida, losangos nos ladrilhos livres, escolhido em verde com o móvel transparente, pílula de instrução, tocar em móvel para mover, “Guardar” | G | AG02 (UI) | a fazer |
+| T-030 | Loja: abas Salão, Paredes e Cores, grade de 3 colunas, estados do botão (preço, “Colocando”, “Colocar · N”, desativado) | G | AG02 (UI) | a fazer |
+| T-031 | Validação do M3: 17 itens comprados, colocados, movidos e guardados; fechar e reabrir mantém tudo | M | AG06 (QA) | a fazer |
+| T-032 | Fechamento do M3: versão 0.3.0, PR, tag v0.3.0 | P | AG00 | a fazer |
+
+Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 → T-030 → T-031 → T-032.
+
+## M4 — v0.4.0 — Vida da loja
+
+| ID | Título | Tam. | Dono | Estado |
+|---|---|---|---|---|
+| T-033 | Nível (marcos 2…40) e liberação de receitas (6, 14, 24); barra de progresso real | P | AG01 (Gameplay) | a fazer |
+| T-034 | Clientes da casa: 45% de chance, favorita, falas em sequência, Bia só depois do Mocha, visitas salvas | M | AG01 (Gameplay) | a fazer |
+| T-035 | Cliente especial a cada 6 clientes, com recadinho (depende da decisão 14) | P | AG01 (Gameplay) | a fazer |
+| T-036 | Plantas com sede a cada 60–120 s (regar = 2 moedas); gato dorme, passeia, senta 5–11 s e volta | M | AG01 (Gameplay) | a fazer |
+| T-037 | Arte: aparência dos 5 clientes da casa e do especial, balão da gota, gato andando e sentado, fala do cliente | M | AG03 (Arte) | a fazer |
+| T-038 | Áudio: chuva, música e efeitos por Web Audio; começa no toque e volta ao retornar ao app | M | AG04 (Áudio) | a fazer |
+| T-039 | Toques na cena: planta com sede rega, gato solta coração | P | AG02 (UI) | a fazer |
+| T-040 | Tela Clientes da casa: cartões, selo de visitas, “Cliente misterioso” tracejado, “N de 5” | M | AG02 (UI) | a fazer |
+| T-041 | Tela Cardápio: receitas com preço e passos; bloqueadas tracejadas com “Libera com N bebidas” | M | AG02 (UI) | a fazer |
+| T-042 | Ajustes: painel deslizante, música e chuva, nome da cafeteria (decisão 16), “Recomeçar do zero” em dois toques | M | AG02 (UI) | a fazer |
+| T-043 | Validação do M4: 7 receitas liberam nos marcos, clientes da casa, rituais, áudio e telas novas | M | AG06 (QA) | a fazer |
+| T-044 | Fechamento do M4: versão 0.4.0, PR, tag v0.4.0 | P | AG00 | a fazer |
+
+Ordem: (T-033 ∥ T-038) → (T-034 ∥ T-037) → (T-035 ∥ T-036) → T-039 → T-040 → T-041 → T-042 → T-043 → T-044.
+
+## M5 — v1.0.0 — Presente
+
+| ID | Título | Tam. | Dono | Estado |
+|---|---|---|---|---|
+| T-045 | Manifesto, metadados da Apple e ícones (192, 512 mascarável, 180) com “Nai's Cafe” | M | AG05 (Plataforma) | a fazer |
+| T-046 | Service worker: offline, rede primeiro na navegação, cache com a versão (decisão 11) | M | AG05 (Plataforma) | a fazer |
+| T-047 | Áreas seguras e gestos do sistema no app instalado; campos de texto com 16 px | P | AG02 (UI) | a fazer |
+| T-048 | Animações de toque e acabamento: botões, moedas, transições de tela | M | AG02 (UI) | a fazer |
+| T-049 | Desempenho: 60 fps em iPhone de 2020 em diante com a sala cheia | M | AG03 (Arte) | a fazer |
+| T-050 | Teste no iPhone: instalado, tela cheia, modo avião, som depois de trocar de app, chave de silêncio | M | Dono + AG06 (QA) | a fazer |
+| T-051 | Validação final: todos os critérios de aceite da especificação | M | AG06 (QA) | a fazer |
+| T-052 | Fechamento: versão 1.0.0, PR, tag v1.0.0 | P | AG00 | a fazer |
+
+Ordem: (T-045 ∥ T-047) → T-046 → T-048 → T-049 → T-050 → T-051 → T-052.
