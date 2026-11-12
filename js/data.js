@@ -75,8 +75,8 @@ export const ROOM = {
   entry: { gx: 1.5, gy: 4.5 },
   queue: [
     { gx: 2.5, gy: 2.4 }, // Q1, em frente ao balcão
-    { gx: 2.5, gy: 3.3 }, // Q2
-    { gx: 2.5, gy: 4.2 }, // Q3
+    { gx: 2.3, gy: 3.2 }, // Q2 (≥ 0,9 do banquinho 1)
+    { gx: 2.1, gy: 4.0 }, // Q3 (≥ 0,9 do banquinho 1)
   ],
   hub: { gx: 3.5, gy: 2.5 },
   exit: { gx: 1.5, gy: 3.0 },
@@ -118,10 +118,10 @@ export const CUSTOMER_LOOKS = {
   hairStyles: ['short', 'long', 'bun', 'curly'],
 };
 
-// Barista (decisão 15). Cores exatas: [Proposta] do AG03 na T-018.
+// Barista (decisão 15). Cores finais do AG03 (T-018).
 export const BARISTA_LOOK = {
-  skin: '#d9a27a', // levemente morena
-  hair: '#3d2418', // castanho-escuro
+  skin: '#e2ad84', // levemente morena
+  hair: '#3b2419', // castanho-escuro
   shirt: MINT,
   pants: '#5b4a7a',
   hairStyle: 'curly',
