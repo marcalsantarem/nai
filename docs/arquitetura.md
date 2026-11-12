@@ -152,11 +152,11 @@ BARISTA_LOOK = { skin, hair, shirt: MINT, pants, hairStyle: 'curly', apron: true
 - Barista (decisão 15): pele levemente morena, cabelo cacheado castanho-escuro. `hairStyle: 'curly'` é novo e fica com o AG03 (T-018); as cores exatas são [Proposta] dele.
 - `short` e `hint` dos ingredientes: só “Moer”, “Espresso”, “Leite”, “Desenho” e “Agora coloque o leite vaporizado” estão no mockup; o resto é [Proposta] do AG01 na T-015.
 
-## 9. Pontos [A definir]
+## 9. Pontos resolvidos
 
-1. Primeiro cliente ao abrir o jogo: espera os 7–14 s normais ou chega logo? (hoje: 7–14 s).
-2. Cliente que sai sem lugar, com o copo, também solta coração?
-3. Legenda da barra no M2 ao chegar a 6 servidas (decisão 20): “Faltam 0 bebidas…” ou outro texto? E o nível fica em 1 no M2?
-4. Voltar do Preparo perde os passos já feitos (hoje: perde; o cliente continua)?
-5. Com a decisão 13, os marcos de receita passam a 6, 10, 14 e 24, mas a especificação ainda diz “6, 14 e 24”.
-6. No M3, os móveis de `INITIAL_LAYOUT` (hoje em posições contínuas) viram itens salvos `{ tipo, ladrilho }`: falta definir o ladrilho de cada um e levar o layout para `data`/`state`.
+1. Primeiro cliente chega ~2 s após abrir (decisão 21).
+2. Quem sai sem lugar também solta coração (decisão 22).
+3. Barra com 6: “O Mocha chega em breve”; nível sobe desde o M2 (decisão 23).
+4. Voltar do Preparo guarda os passos (decisão 24).
+5. Marcos de receita: 6, 10, 14, 24 (decisão 25).
+6. [A definir] no M3: ladrilho de cada móvel de `INITIAL_LAYOUT` ao virar item salvo.

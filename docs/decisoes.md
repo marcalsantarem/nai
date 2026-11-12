@@ -25,3 +25,8 @@ Ao mudar uma decisão, atualize esta tabela e, se for o caso, o `CLAUDE.md`.
 | 18 | Cartão sem cliente | Decidido | Título só “Aguardando” (a especificação dizia “Aguardando o próximo cliente”) | Dono, 2026-11-12 |
 | 19 | Clientes comuns | Decidido | Têm nomes brasileiros comuns, sorteados de uma lista em `js/data.js` | Dono, 2026-11-12 |
 | 20 | Barra de progresso no M2 | Decidido | Conta as servidas e fica parada ao atingir 6 até a liberação de receitas no M4 | Dono, 2026-11-12 |
+| 21 | Primeiro cliente | Decidido | Chega cerca de 2 s depois de abrir; os seguintes seguem 7–14 s | Dono, 2026-11-12 |
+| 22 | Cliente sem lugar | Decidido | Sai com o copo e também solta um coração | Dono, 2026-11-12 |
+| 23 | Barra e nível no M2 | Decidido | Com 6 servidas a legenda diz “O Mocha chega em breve”; o nível já sobe nos marcos desde o M2 | Dono, 2026-11-12 |
+| 24 | Voltar do Preparo | Decidido | Guarda os passos já feitos; o cliente continua na fila | Dono, 2026-11-12 |
+| 25 | Marcos de receita | Decidido | 6, 10, 14 e 24 servidas (decisão 13 vale sobre o texto antigo da especificação) | AG00, 2026-11-12 |
