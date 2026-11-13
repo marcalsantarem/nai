@@ -56,7 +56,7 @@ Fora do M2 (ficam para o M3/M4): salvar progresso, liberar Mocha, Chocolate quen
 | T-030 | Loja: abas Salão, Paredes e Cores, grade de 3 colunas, estados do botão (preço, “Colocando”, “Colocar · N”, desativado) | G | AG02 (UI) | feita (BRF-029) |
 | T-031 | Validação do M3: 17 itens comprados, colocados, movidos e guardados; fechar e reabrir mantém tudo | M | AG06 (QA) | feita (BRF-030): passa com ressalvas, ver docs/qa/qa-M3.md |
 | T-055 | QA do M3: clientes desviam dos móveis (D3) e tipos do salvo validados (D1) | M | AG01 (Gameplay) | feita (BRF-031) |
-| T-032 | Fechamento do M3: versão 0.3.0, PR, tag v0.3.0 | P | AG00 | em andamento (versão 0.3.0 na dev; aguarda PR e tag) |
+| T-032 | Fechamento do M3: versão 0.3.0, PR, tag v0.3.0 | P | AG00 | feita (PR #3, tag v0.3.0) |
 
 Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 → T-030 → T-031 → T-032.
 

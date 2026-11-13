@@ -18,10 +18,10 @@ Jogo cozy de cafeteria para celular, numa noite de chuva: receber clientes, prep
 
 iPhone em retrato (Safari e PWA instalada), 390 × 844 pt de referência. Site estático, sem build, publicado no Netlify. Offline após a primeira abertura. Dados só no aparelho.
 
-## Escopo atual: M3 — Decoração (v0.3.0). M1 e M2 fechados (tags v0.1.0 e v0.2.0)
+## Escopo atual: M4 — Vida da loja (v0.4.0). M1 a M3 fechados (tags v0.1.0 a v0.3.0)
 
-**Dentro:** tela Decorar; loja com 17 itens nas abas Salão, Paredes e Cores; comprar, colocar, mover e guardar; estoque; 5 cores de parede e 3 pisos; mesa nova dá mais 2 lugares; progresso salvo no aparelho. Tasks T-023 a T-032 no backlog.
-**Fora:** clientes da casa, cardápio, liberação de receitas, plantas com sede, gato andando, áudio, Ajustes, service worker.
+**Dentro:** nível e liberação de receitas (6, 10, 14, 24); clientes da casa com falas; cliente especial com recadinhos (aguarda textos do dono); plantas com sede e gato; chuva, música e efeitos; toques na planta e no gato; telas Clientes da casa, Cardápio e Ajustes (nome editável, recomeçar do zero). Tasks T-033 a T-044 e T-056 no backlog.
+**Fora:** instalação como PWA, modo offline, acabamento final e teste formal no iPhone (M5).
 
 ## Time
 
