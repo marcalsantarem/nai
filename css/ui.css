@@ -1,5 +1,17 @@
 /* Layout e componentes da interface. Valores vêm de tokens.css. */
 
+/* ---------- Áreas seguras ---------- */
+/* Entalhe, indicador de início e laterais (viewport-fit=cover). Variáveis para poder simular
+   os valores no navegador: :root { --inset-top: 47px; ... }. */
+:root {
+  --inset-top: env(safe-area-inset-top, 0px);
+  --inset-right: env(safe-area-inset-right, 0px);
+  --inset-bottom: env(safe-area-inset-bottom, 0px);
+  --inset-left: env(safe-area-inset-left, 0px);
+  --pad-top: max(var(--safe-top), var(--inset-top));
+  --pad-bottom: max(var(--safe-bottom), var(--inset-bottom));
+}
+
 /* ---------- Base e gestos do sistema ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -46,6 +58,7 @@ svg { display: block; flex: none; }
   height: 530px;
   border-radius: 50%;
   background: var(--dusk-light);
+  transition: top 220ms ease-out;
 }
 .backdrop__dot {
   position: absolute;
@@ -65,11 +78,7 @@ svg { display: block; flex: none; }
   height: 100%;
   max-width: var(--column-max);
   margin: 0 auto;
-  padding:
-    max(var(--safe-top), env(safe-area-inset-top))
-    env(safe-area-inset-right)
-    max(var(--safe-bottom), env(safe-area-inset-bottom))
-    env(safe-area-inset-left);
+  padding: var(--pad-top) var(--inset-right) var(--pad-bottom) var(--inset-left);
   display: flex;
   flex-direction: column;
 }
@@ -80,18 +89,23 @@ svg { display: block; flex: none; }
   display: flex;
   flex-direction: column;
 }
+/* Entrada de tela: curta, só opacidade e um leve deslize (sem desfoque). */
+.screen.is-entering { animation: screen-in 180ms ease-out both; }
+@keyframes screen-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 /* Áreas roláveis dentro da tela não arrastam a página. */
 .scroll {
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.scroll::-webkit-scrollbar { display: none; }
 
 /* ---------- Tipografia ---------- */
 .title-screen { font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1; color: var(--cream); }
 .title-card { font-family: var(--font-display); font-weight: 700; font-size: 19px; line-height: 1.1; }
 .label { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: var(--text-muted); }
-.caption { font-size: 12px; font-weight: 700; color: var(--text-on-dusk); text-wrap: balance; }
+.caption { font-size: 12px; font-weight: 700; line-height: 1.35; color: var(--text-on-dusk); text-wrap: balance; }
 .text-muted { font-size: 13px; font-weight: 800; color: var(--text-muted); }
 
 /* ---------- Botão ---------- */
@@ -124,13 +138,13 @@ svg { display: block; flex: none; }
   cursor: default;
 }
 
-/* Pressionado: desce 3 px e a sombra vai a 1 px. */
-.btn:not(:disabled):active,
-.icon-btn:active {
+/* Pressionado: desce 3 px e a sombra vai a 1 px. .is-pressed vem de main.js no primeiro toque. */
+.btn:not(:disabled):active, .btn.is-pressed,
+.icon-btn:active, .icon-btn.is-pressed {
   transform: translateY(var(--press-offset));
   box-shadow: var(--shadow-pressed);
 }
-.btn--primary:not(:disabled):active { box-shadow: var(--shadow-pressed-ink); }
+.btn--primary:not(:disabled):active, .btn--primary.is-pressed { box-shadow: var(--shadow-pressed-ink); }
 
 /* ---------- Botão de ícone redondo ---------- */
 .icon-btn {
@@ -263,6 +277,9 @@ svg { display: block; flex: none; }
   cursor: pointer;
 }
 .nav__item.is-active { background: var(--yellow); border-color: var(--ink); }
+/* Sem sombra própria: o pressionado só desce. */
+.nav__item:active, .nav__item.is-pressed,
+.shop__tab:active, .shop__tab.is-pressed { transform: translateY(var(--press-offset)); }
 
 /* ---------- Tela Cafeteria ---------- */
 .top {
@@ -286,6 +303,7 @@ svg { display: block; flex: none; }
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow-x: clip; /* o canvas é mais largo que a coluna: corta aqui, sem alargar a página */
 }
 /* A cena pode passar da coluna (a sala corta até 18 px das pontas). */
 .scene__canvas { display: block; flex: none; }
@@ -334,21 +352,8 @@ svg { display: block; flex: none; }
 .order__portrait--empty .order__portrait-canvas { visibility: hidden; }
 
 /* ---------- Tela Preparo ---------- */
-/* Cores próprias desta tela (mockup 02-preparo). [Proposta]: mover para tokens.css (arquivo compartilhado). */
-.prep {
-  --step-todo: #5d5ca3;
-  --halo: rgba(255, 201, 77, 0.4);
-  --cup-inside: #fffdf7;
-  --pitcher: #e6ecf3;
-  gap: 12px;
-}
-/* Cores dos quadradinhos de ingrediente (Preparo e Cardápio). */
-.prep, .recipes {
-  --tile-sand: #f3dcb8;
-  --tile-sky: #cfe6f7;
-  --tile-mint: #cfeedd;
-  --tile-lilac: #e7e2fa;
-}
+/* Cores próprias desta tela: em tokens.css (mockup 02-preparo). */
+.prep { gap: 12px; }
 /* O círculo do fundo fica 50 px mais alto nesta tela (mockup). */
 body:has(.prep) .backdrop__circle { top: 120px; }
 
@@ -456,7 +461,7 @@ body:has(.prep) .backdrop__circle { top: 120px; }
 .cup__handle-in { stroke: var(--cream); stroke-width: 9; }
 .cup__inside { fill: var(--cup-inside); }
 .cup__outline { fill: none; stroke: var(--ink); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
-.cup__gloss { fill: #fff; fill-opacity: 0.7; }
+.cup__gloss { fill: var(--gloss); fill-opacity: 0.7; }
 .cup__pitcher { fill: var(--pitcher); stroke: var(--ink); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
 .cup__pitcher-handle { fill: none; stroke: var(--ink); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
 .cup__figure path { fill: none; stroke: var(--wood); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
@@ -561,8 +566,8 @@ body:has(.prep) .backdrop__circle { top: 120px; }
 .prep-ing.is-next { background: var(--yellow); box-shadow: var(--shadow-button), 0 0 0 5px var(--halo); }
 .prep-ing.is-next .prep-ing__tile { background: var(--cream); }
 
-.prep-ing:active { transform: translateY(var(--press-offset)); box-shadow: var(--shadow-pressed); }
-.prep-ing.is-next:active, .prep-art__btn:active {
+.prep-ing:active, .prep-ing.is-pressed { transform: translateY(var(--press-offset)); box-shadow: var(--shadow-pressed); }
+.prep-ing.is-next:active, .prep-ing.is-next.is-pressed, .prep-art__btn:active, .prep-art__btn.is-pressed {
   transform: translateY(var(--press-offset));
   box-shadow: var(--shadow-pressed), 0 0 0 5px var(--halo);
 }
@@ -589,13 +594,8 @@ body:has(.prep) .backdrop__circle { top: 120px; }
 }
 
 /* ---------- Tela Decorar ---------- */
-/* Cores próprias desta tela (mockup 03-decorar). [Proposta]: mover para tokens.css (arquivo compartilhado). */
-.decor {
-  --paper: #fffdf7;      /* fundo do cartão da loja */
-  --paper-edge: #ecd9b8; /* contorno do cartão e da aba inativos */
-  --handle: #d9c3a5;     /* alça do painel */
-  gap: 6px;
-}
+/* Cores próprias desta tela: em tokens.css (mockup 03-decorar). */
+.decor { gap: 6px; }
 /* O círculo do fundo fica 80 px mais alto e a loja vai até a borda de baixo (mockup). */
 body:has(.decor) .backdrop__circle { top: 90px; }
 body:has(.decor) .app { padding-bottom: 0; }
@@ -609,6 +609,7 @@ body:has(.decor) .app { padding-bottom: 0; }
   align-items: center;
   justify-content: center;
   gap: 4px;
+  overflow-x: clip;
 }
 .decor-stage__canvas { display: block; flex: none; }
 /* Linha fixa da altura da pílula (34 px, mockup) abaixo da sala, para a sala não pular. */
@@ -646,7 +647,7 @@ body:has(.decor) .app { padding-bottom: 0; }
 .shop {
   position: relative;
   flex: none;
-  padding: 10px var(--gutter) max(var(--safe-bottom), env(safe-area-inset-bottom));
+  padding: 10px var(--gutter) var(--pad-bottom);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -680,9 +681,7 @@ body:has(.decor) .app { padding-bottom: 0; }
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-content: start;
   gap: 10px;
-  scrollbar-width: none;
 }
-.shop__grid::-webkit-scrollbar { display: none; }
 /* Telas mais baixas: 1,5 fileira visível, para a sala não encolher demais. */
 @media (max-height: 800px) { .shop__grid { height: 236px; } }
 .shop-card {
@@ -735,16 +734,12 @@ body:has(.decor) .app { padding-bottom: 0; }
 .shop-btn--stock { background: var(--mint); }
 .shop-btn:disabled { background: var(--disabled); color: var(--night); cursor: default; }
 .shop-btn:disabled .coin { opacity: 0.6; }
-.shop-btn:not(:disabled):active { transform: translateY(var(--press-offset)); box-shadow: 0 0 0 var(--ink); }
+.shop-btn:not(:disabled):active, .shop-btn.is-pressed { transform: translateY(var(--press-offset)); box-shadow: 0 0 0 var(--ink); }
 .coin--xs { width: 18px; height: 18px; }
 
 /* ---------- Telas de lista: Clientes da casa (mockup 04-clientes) e Cardápio ---------- */
-/* Cores próprias (mockup 04-clientes). [Proposta]: mover para tokens.css (arquivo compartilhado). */
-.guests, .recipes {
-  --mystery-edge: #8d8bc4; /* contorno tracejado do cartão misterioso */
-  --mystery-fill: #5d5ca3; /* círculo do "?" */
-  gap: 12px;
-}
+/* Cores próprias: em tokens.css (mockup 04-clientes). */
+.guests, .recipes { gap: 12px; }
 body:has(.guests) .backdrop__circle,
 body:has(.recipes) .backdrop__circle { top: 140px; }
 
@@ -898,9 +893,12 @@ body:has(.recipes) .backdrop__circle { top: 140px; }
 
 /* ---------- Ajustes (T-042) ---------- */
 .top__name { line-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Nome que não cabe nem na menor fonte: 2 linhas (D2 do M4). */
+.top__name.is-wrapped { font-size: 15px; line-height: 16px; white-space: normal; overflow-wrap: anywhere; text-overflow: clip; }
 /* Painel que desce do topo (o teclado do iPhone sobe por baixo sem cobrir o campo). */
+/* O véu cobre a tela inteira (também as áreas do sistema); o painel fica abaixo do entalhe. */
 .settings {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 10;
   background: color-mix(in srgb, var(--night) 0%, transparent);
@@ -908,10 +906,11 @@ body:has(.recipes) .backdrop__circle { top: 140px; }
 }
 .settings.is-open { background: color-mix(in srgb, var(--night) 55%, transparent); }
 .settings__panel {
+  --side: calc(max(0px, (100% - var(--column-max)) / 2) + var(--gutter));
   position: absolute;
-  top: 0;
-  left: var(--gutter);
-  right: var(--gutter);
+  top: var(--pad-top);
+  left: calc(var(--side) + var(--inset-left));
+  right: calc(var(--side) + var(--inset-right));
   padding: 14px 16px 18px;
   display: flex;
   flex-direction: column;
@@ -986,3 +985,10 @@ body:has(.recipes) .backdrop__circle { top: 140px; }
 @media (prefers-reduced-motion: reduce) {
   .settings, .settings__panel, .switch, .switch__knob { transition: none; }
 }
+
+/* ---------- Movimento reduzido (T-048) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .screen.is-entering { animation: screen-fade 120ms linear both; }
+  .backdrop__circle { transition: none; }
+}
+@keyframes screen-fade { from { opacity: 0; } to { opacity: 1; } }

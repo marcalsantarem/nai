@@ -110,6 +110,7 @@ function layoutCanvas() {
   view = { cssW, cssH, dpr, scale };
   fitOrderTitle();
   fitName();
+  fitCaption();
   draw(); // redesenha já: mudar o tamanho limpa o canvas
 }
 
@@ -123,8 +124,25 @@ function draw() {
   const s = game.state.get();
   const d = new Date();
   art.drawScene(ctx, {
-    time, entities: game.sim.entities(), layout, wall: s.wall, floor: s.floor,
+    time, entities: clearSpeech(game.sim.entities()), layout, wall: s.wall, floor: s.floor,
     now: { h: d.getHours(), m: d.getMinutes() },
+  });
+}
+
+// Balão de fala por cima do balão de pedido de quem está perto (D3 do M4): enquanto a fala
+// dura (~4 s), o pedido vizinho fica só no cartão. Medidas em unidades do viewBox:
+// fala até 144 de largura, pedido ~100; alturas somadas ~65.
+const SPEECH_CLEAR_X = 125;
+const SPEECH_CLEAR_Y = 65;
+function clearSpeech(ents) {
+  const talking = ents.filter((e) => e.speech);
+  if (!talking.length) return ents;
+  const spots = talking.map((e) => project(e.gx, e.gy));
+  return ents.map((e) => {
+    if (!e.bubble || e.speech) return e;
+    const p = project(e.gx, e.gy);
+    const near = spots.some((q) => Math.abs(p.x - q.x) < SPEECH_CLEAR_X && Math.abs(p.y - q.y) < SPEECH_CLEAR_Y);
+    return near ? { ...e, bubble: null } : e;
   });
 }
 
@@ -138,22 +156,52 @@ function renderTop() {
   refs.progress.setAttribute('aria-label', p.next
     ? `Progresso: ${p.done} de ${p.span} bebidas para a próxima receita`
     : 'Todas as receitas liberadas');
-  refs.caption.textContent = p.caption;
+  if (refs.caption.dataset.full !== p.caption) { refs.caption.dataset.full = p.caption; fitCaption(); }
   if (refs.name.textContent !== s.name) { refs.name.textContent = s.name; fitName(); }
   refs.coins.textContent = String(s.coins);
   refs.coinsPill.setAttribute('aria-label', `${s.coins} moedas`);
 }
 
-// Nome longo (até 24 caracteres): reduz a fonte até caber; no limite, reticências.
-const NAME_MIN_PX = 14;
+// Nome longo (até 24 caracteres): reduz a fonte até caber; se nem assim couber,
+// quebra em 2 linhas (D2 do M4), sem reticências.
+const NAME_MIN_PX = 13;
 function fitName() {
   if (!refs) return;
   const t = refs.name;
+  t.classList.remove('is-wrapped');
   t.style.fontSize = '';
   let size = parseFloat(getComputedStyle(t).fontSize);
   while (t.scrollWidth > t.clientWidth + 0.5 && size > NAME_MIN_PX) {
     size -= 1;
     t.style.fontSize = `${size}px`;
+  }
+  if (t.scrollWidth > t.clientWidth + 0.5) {
+    t.style.fontSize = '';
+    t.classList.add('is-wrapped');
+  }
+}
+
+// Legenda da barra em no máximo 2 linhas: reduz a fonte até CAPTION_MIN_PX; se ainda
+// passar, usa a forma curta "Faltam N para o X" [Proposta].
+const CAPTION_MIN_PX = 10.5;
+const captionLines = (t) => Math.round(t.getBoundingClientRect().height / parseFloat(getComputedStyle(t).lineHeight));
+function fitCaption() {
+  if (!refs) return;
+  const t = refs.caption;
+  const full = t.dataset.full || '';
+  t.textContent = full;
+  t.style.fontSize = '';
+  let size = parseFloat(getComputedStyle(t).fontSize);
+  while (captionLines(t) > 2 && size > CAPTION_MIN_PX) {
+    size -= 0.5;
+    t.style.fontSize = `${size}px`;
+  }
+  if (captionLines(t) > 2) {
+    const p = game.state.getRecipeProgress();
+    if (p.next) {
+      t.style.fontSize = '';
+      t.textContent = `${p.left === 1 ? 'Falta 1' : `Faltam ${p.left}`} para o ${p.next.name}`;
+    }
   }
 }
 
@@ -370,7 +418,7 @@ export default {
     const gain = Math.round(Number(context.params && context.params.gain) || 0);
     if (gain > 0) requestAnimationFrame(() => { if (root === el) showGainAtPill(gain); });
 
-    document.fonts.ready.then(() => { fontsReady = true; fitOrderTitle(); fitName(); });
+    document.fonts.ready.then(() => { fontsReady = true; fitOrderTitle(); fitName(); fitCaption(); });
     // art.js é do AG03; se ainda não existir, a cena fica vazia sem erro.
     import('../art.js')
       .then((mod) => {

@@ -39,3 +39,4 @@ Ao mudar uma decisão, atualize esta tabela e, se for o caso, o `CLAUDE.md`.
 | 32 | Cores de parede e piso | Decidido | Tons propostos para rosa, azul céu, amarelo manteiga, lilás, madeira clara e madeira escura aprovados como estão em `js/data.js` | Dono, 2026-11-13 |
 | 33 | Tapete sob outro móvel | Decidido | O toque levanta o móvel de cima; para mover o tapete, primeiro tira-se o móvel de cima | AG00, 2026-11-13 |
 | 34 | Cliente especial | Decidido | O M4 fecha sem o cliente especial; a T-035 passa para o M5 e sai quando o dono mandar os recadinhos | Dono, 2026-11-13 |
+| 35 | Legenda da barra | Decidido | “Faltam N para o X” (mais curta, cabe em 2 linhas a 360) | AG00, 2026-11-13 |

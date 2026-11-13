@@ -87,8 +87,8 @@ Ordem: (T-033 ∥ T-038) → (T-034 ∥ T-037) → (T-035 ∥ T-036) → T-039 �
 |---|---|---|---|---|
 | T-045 | Manifesto, metadados da Apple e ícones (192, 512 mascarável, 180) com “Nai's Cafe” | M | AG05 (Plataforma) | feita (BRF-045) |
 | T-046 | Service worker: offline, rede primeiro na navegação, cache com a versão (decisão 11) | M | AG05 (Plataforma) | feita (BRF-046) |
-| T-047 | Áreas seguras e gestos do sistema no app instalado; campos de texto com 16 px | P | AG02 (UI) | em andamento |
-| T-048 | Animações de toque e acabamento: botões, moedas, transições de tela; mover as cores locais de `.prep`, `.decor` e das telas Clientes/Cardápio para `tokens.css`; legenda da barra com nome longo (3 linhas a 360/390); ressalvas D1–D6 do `docs/qa/qa-M4.md` (gota e gato na Decorar, nome longo no topo, fala sobre o pedido, marca no ladrilho que fecha a passagem, barra de rolagem do Cardápio, largura do `body`) | M | AG02 (UI) | em andamento |
+| T-047 | Áreas seguras e gestos do sistema no app instalado; campos de texto com 16 px | P | AG02 (UI) | feita (BRF-047) |
+| T-048 | Animações de toque e acabamento: botões, moedas, transições de tela; mover as cores locais de `.prep`, `.decor` e das telas Clientes/Cardápio para `tokens.css`; legenda da barra com nome longo (3 linhas a 360/390); ressalvas D1–D6 do `docs/qa/qa-M4.md` (gota e gato na Decorar, nome longo no topo, fala sobre o pedido, marca no ladrilho que fecha a passagem, barra de rolagem do Cardápio, largura do `body`) | M | AG02 (UI) | feita (BRF-048) |
 | T-049 | Desempenho: 60 fps em iPhone de 2020 em diante com a sala cheia | M | AG03 (Arte) | em andamento |
 | T-050 | Teste no iPhone: instalado, tela cheia, modo avião, som depois de trocar de app, chave de silêncio | M | Dono + AG06 (QA) | a fazer |
 | T-035 | Cliente especial a cada 6 clientes, com recadinho (depende da decisão 14) | P | AG01 (Gameplay) | bloqueada (aguarda recadinhos do dono; decisão 34) |

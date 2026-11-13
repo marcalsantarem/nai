@@ -29,6 +29,22 @@
   --window: #3d4283;
   --contact-shadow: #2a1b3d; /* usar a 16% */
 
+  /* Cores locais das telas (mockup), movidas para cá na T-048 */
+  --step-todo: #5d5ca3;            /* Preparo: passo ainda não feito */
+  --halo: rgba(255, 201, 77, 0.4); /* Preparo: halo do próximo passo */
+  --cup-inside: #fffdf7;           /* Preparo: interior da xícara */
+  --pitcher: #e6ecf3;              /* Preparo: jarra de leite */
+  --gloss: #ffffff;                /* Preparo: brilho da xícara (com opacidade) */
+  --tile-sand: #f3dcb8;            /* Preparo e Cardápio: quadradinhos de ingrediente */
+  --tile-sky: #cfe6f7;
+  --tile-mint: #cfeedd;
+  --tile-lilac: #e7e2fa;
+  --paper: #fffdf7;                /* Decorar: fundo do cartão da loja */
+  --paper-edge: #ecd9b8;           /* Decorar: contorno do cartão e da aba inativos */
+  --handle: #d9c3a5;               /* Decorar: alça do painel */
+  --mystery-edge: #8d8bc4;         /* Clientes: contorno tracejado do cartão misterioso */
+  --mystery-fill: #5d5ca3;         /* Clientes: círculo do "?" */
+
   /* Fontes */
   --font-display: 'Baloo 2', 'Trebuchet MS', sans-serif;
   --font-body: 'Nunito', 'Segoe UI', system-ui, sans-serif;

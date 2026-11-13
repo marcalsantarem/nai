@@ -18,6 +18,7 @@ const THUMB = 60;   // miniatura da loja, px CSS
 const TAP_PT = 22;  // raio mínimo do toque
 const NOTICE_MS = 2600;
 const CAPTION = 'Toque em um móvel para mudar de lugar';
+const REFUSED_MS = 900; // marca coral no ladrilho que fecharia a passagem (D4 do M4)
 
 // Centro do desenho acima da âncora e meio lado, em unidades do viewBox (enquadramento das miniaturas).
 const HIT = {
@@ -102,6 +103,7 @@ let tab = 'salao';
 let layout = null;  // decor.sceneLayout(), refeito a cada mudança
 let placing = null; // decor.getPlacing()
 let notice = null;  // { text, until }
+let refused = null; // { c, r, at }: ladrilho recusado por fechar a passagem
 let cards = [];     // [{ kind, id, li, btn, key }]
 
 // ---------- Sala ----------
@@ -130,10 +132,35 @@ function draw() {
   ctx.clearRect(0, 0, c.width, c.height);
   ctx.setTransform(kx, 0, 0, ky, -VB.x * kx, -VB.y * ky);
   const s = game.state.get();
+  // Na Decorar não aparecem a gota de sede nem o gato (D1 do M4): aqui eles não respondem ao toque.
+  const entities = game.sim.entities().filter((e) => e.kind !== 'thirst' && e.kind !== 'cat');
   art.drawScene(ctx, {
-    time, entities: game.sim.entities(), layout, wall: s.wall, floor: s.floor, now: nowHM(),
+    time, entities, layout, wall: s.wall, floor: s.floor, now: nowHM(),
     placing: placing ? { type: placing.type, free: placing.free, chosen: placing.chosen } : null,
   });
+  drawRefused();
+}
+
+// Losango coral que pisca e some no ladrilho recusado.
+function drawRefused() {
+  if (!refused) return;
+  const k = (performance.now() - refused.at) / REFUSED_MS;
+  if (k >= 1) { refused = null; return; }
+  const { c, r } = refused;
+  const pts = [project(c, r), project(c + 1, r), project(c + 1, r + 1), project(c, r + 1)];
+  const coral = getComputedStyle(document.documentElement).getPropertyValue('--coral').trim() || 'coral';
+  ctx.save();
+  ctx.beginPath();
+  pts.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+  ctx.closePath();
+  ctx.globalAlpha = k < 0.6 ? 0.75 : 0.75 * (1 - (k - 0.6) / 0.4);
+  ctx.fillStyle = coral;
+  ctx.fill();
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = coral;
+  ctx.stroke();
+  ctx.restore();
 }
 
 // Estado da colocação e do layout, refeitos após cada ação ou evento de decoração.
@@ -221,7 +248,10 @@ function onSceneClick(e) {
     const res = confirm ? decor.place(spot) : decor.choose(spot);
     if (confirm && res.ok) sfx('place');
     // T-056: lugar que fecharia a passagem dos clientes
-    if (res.reason === 'blocks-path') notice = { text: 'Esse lugar fecha a passagem', until: performance.now() + NOTICE_MS };
+    if (res.reason === 'blocks-path') {
+      notice = { text: 'Esse lugar fecha a passagem', until: performance.now() + NOTICE_MS };
+      if (Array.isArray(spot)) refused = { c: spot[0], r: spot[1], at: performance.now() };
+    }
   } else {
     const ref = itemAt(vx, vy, radius);
     if (ref) decor.pickUp(ref);
@@ -379,7 +409,7 @@ export default {
     if (resizeObs) resizeObs.disconnect();
     if (refs) refs.canvas.removeEventListener('click', onSceneClick);
     if (root) root.removeEventListener('click', onClick);
-    root = game = refs = ctx = view = resizeObs = layout = placing = notice = null;
+    root = game = refs = ctx = view = resizeObs = layout = placing = notice = refused = null;
     cards = [];
   },
   update(dt) {
