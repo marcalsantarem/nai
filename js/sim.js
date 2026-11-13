@@ -2,7 +2,7 @@
 // Só avança por update(dt) e sorteia com o rng recebido (roda em Node).
 import {
   RECIPES, CYCLE, ROOM, CUSTOMER_NAMES, CUSTOMER_LOOKS, BARISTA_LOOK, DECOR_ITEMS, TABLE_SEATS,
-  REGULARS, REGULAR_CHANCE, SPEECH_TIME,
+  REGULARS, REGULAR_CHANCE, SPEECH_TIME, RITUALS,
 } from './data.js';
 import * as stateModule from './state.js';
 import { unlockedFor } from './state.js';
@@ -24,8 +24,10 @@ const ITEM = Object.assign(Object.create(null), Object.fromEntries(DECOR_ITEMS.m
 const MARGIN = 0.01; // folga ao testar segmento x ladrilho
 const tileOf = (v) => Math.min(GRID - 1, Math.max(0, Math.floor(v)));
 const tkey = (c, r) => c * GRID + r;
+// Balcão (reservados de r 0–1): o gato não passa por ele.
+const COUNTER = ROOM.reservedTiles.filter(([, r]) => r <= 1).map(([c, r]) => tkey(c, r));
 
-function blockedTiles(floor) {
+export function blockedTiles(floor) {
   const set = new Set();
   for (const it of floor) {
     const d = ITEM[it.type];
@@ -64,6 +66,11 @@ function segmentClear(a, b, blocked, allow) {
 // Rota de a até b: [b] se a reta está livre; senão Dijkstra 8-vizinhos (diagonal só com os
 // dois vizinhos livres) e corte dos cantos (fio esticado). Sem rota: reta, como no M2.
 export function findRoute(a, b, blocked) {
+  return searchRoute(a, b, blocked) || [{ gx: b.gx, gy: b.gy }];
+}
+
+// A mesma busca, mas sem rota devolve null (decor.js usa para não fechar a passagem; T-056).
+export function searchRoute(a, b, blocked) {
   const end = { gx: b.gx, gy: b.gy };
   if (!blocked || !blocked.size) return [end];
   const sk = tkey(tileOf(a.gx), tileOf(a.gy));
@@ -92,7 +99,7 @@ export function findRoute(a, b, blocked) {
       }
     }
   }
-  if (!dist.has(gk)) return [end];
+  if (!dist.has(gk)) return null;
   const tiles = [];
   for (let k = prev.get(gk); k !== undefined && k !== sk; k = prev.get(k)) tiles.unshift(k);
   const pts = [{ gx: a.gx, gy: a.gy },
@@ -143,6 +150,11 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
   let blocked = new Set();
   let blockSig = '';
   const listeners = new Set();
+  // Rituais (T-036), só em memória. Plantas regáveis por itemId 'c,r': { itemId, gx, gy, timer, thirsty }.
+  const plants = new Map();
+  let plantSig = null;
+  let cat = null; // { gx, gy, dir, pose, walk, heart, timer, phase, path, bed }
+  let bedSig = null;
 
   function emit(ev) {
     for (const fn of [...listeners]) {
@@ -307,6 +319,150 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
     }
   }
 
+  // ---------- Rituais (T-036) ----------
+  const R = RITUALS;
+  const floorNow = () => { try { return layout.sceneLayout().floor || []; } catch (e) { return []; } };
+
+  // Plantas regáveis colocadas: cada uma ganha um tempo até a sede. Levantada ou guardada, sai;
+  // colocada de novo (ou em outro ladrilho), começa outro tempo.
+  function syncPlants(floor) {
+    const list = floor.filter((it) => ITEM[it.type] && ITEM[it.type].waterable);
+    const sig = list.map((it) => it.c + ',' + it.r + '@' + it.gx + ',' + it.gy).join('|');
+    if (sig === plantSig) return;
+    plantSig = sig;
+    const seen = new Set();
+    for (const it of list) {
+      const itemId = it.c + ',' + it.r;
+      seen.add(itemId);
+      const p = plants.get(itemId);
+      if (p) { p.gx = it.gx; p.gy = it.gy; continue; }
+      plants.set(itemId, { itemId, gx: it.gx, gy: it.gy, timer: randReal(R.thirstMin, R.thirstMax), thirsty: false });
+    }
+    for (const id of [...plants.keys()]) if (!seen.has(id)) plants.delete(id);
+  }
+
+  function updatePlants(dt) {
+    for (const p of plants.values()) {
+      if (p.thirsty) continue;
+      p.timer -= dt;
+      if (p.timer <= 0) p.thirsty = true;
+    }
+  }
+
+  function water(itemId) {
+    const p = plants.get(String(itemId));
+    if (!p || !p.thirsty) return { ok: false };
+    p.thirsty = false;
+    p.timer = randReal(R.thirstMin, R.thirstMax);
+    store.addCoins(R.waterCoins);
+    emit({ type: 'water', itemId: p.itemId, coins: R.waterCoins });
+    return { ok: true, coins: R.waterCoins };
+  }
+
+  // Gato: só com a caminha colocada. Caminha guardada ou na mão: some. Movida: dorme na nova.
+  function catHome() {
+    cat.gx = cat.bed.gx; cat.gy = cat.bed.gy;
+    cat.phase = 'sleep'; cat.path = []; cat.target = null;
+    cat.timer = randReal(R.catSleepMin, R.catSleepMax);
+  }
+
+  function syncCat(floor) {
+    const bed = floor.find((it) => it.type === 'catBed');
+    const sig = bed ? bed.c + ',' + bed.r + '@' + bed.gx + ',' + bed.gy : '';
+    if (sig === bedSig) return;
+    bedSig = sig;
+    if (!bed) { cat = null; return; }
+    const heart = cat ? cat.heart : null;
+    cat = { bed: { gx: bed.gx, gy: bed.gy, c: bed.c, r: bed.r }, dir: 'sw', walk: 0, heart };
+    catHome();
+    catSig = null;
+  }
+
+  // O gato desvia dos móveis e também do balcão. Sem rota: null (nunca atravessa móvel).
+  let catBlocked = new Set();
+  const catRoute = (from, to) => searchRoute(from, to, catBlocked);
+
+  function catWalkTo(phase, point) {
+    const path = catRoute(cat, point);
+    if (!path) return false;
+    cat.phase = phase;
+    cat.target = point;
+    cat.path = path;
+    return true;
+  }
+
+  const catTile = () => tkey(tileOf(cat.gx), tileOf(cat.gy));
+  const bedTile = () => tkey(cat.bed.c, cat.bed.r);
+
+  // Móveis mudaram: refaz a rota. Móvel novo no ladrilho do gato (fora da caminha): ele volta
+  // na hora para a caminha [Proposta]. No ladrilho do passeio: volta andando.
+  let catSig = null;
+  function catCheckTarget() {
+    if (!cat || catSig === blockSig) return;
+    catSig = blockSig;
+    catBlocked = new Set([...blocked, ...COUNTER]);
+    if (cat.phase === 'sleep') return;
+    if (catTile() !== bedTile() && catBlocked.has(catTile())) { catHome(); return; }
+    const goal = cat.phase === 'home' ? cat.bed : cat.target;
+    if (cat.phase !== 'home' && catBlocked.has(tkey(tileOf(goal.gx), tileOf(goal.gy)))) {
+      if (!catWalkTo('home', cat.bed)) catHome();
+      return;
+    }
+    if (cat.phase === 'sit') return;
+    const path = catRoute(cat, goal);
+    if (path) cat.path = path; else catHome();
+  }
+
+  function updateCat(dt) {
+    if (!cat) return;
+    if (cat.heart !== null) {
+      cat.heart += dt / HEART_TIME;
+      if (cat.heart >= 1) cat.heart = null;
+    }
+    if (cat.phase === 'sleep' || cat.phase === 'sit') {
+      cat.timer -= dt;
+      if (cat.timer > 0) return;
+      if (cat.phase === 'sit') { if (!catWalkTo('home', cat.bed)) catHome(); return; }
+      // Passeio: um ladrilho livre (freeSpots) com rota; sem nenhum, dorme mais um pouco.
+      let spots = [];
+      try { spots = layout.freeSpots('plant') || []; } catch (e) { spots = []; }
+      spots = spots.filter(([c, r]) => !catBlocked.has(tkey(c, r)));
+      while (spots.length) {
+        const [[c, r]] = spots.splice(Math.floor(rand() * spots.length), 1);
+        if (catWalkTo('out', { gx: c + 0.5, gy: r + 0.5 })) return;
+      }
+      cat.timer = randReal(R.catSleepMin, R.catSleepMax);
+      return;
+    }
+    // Andando ('out' até o ladrilho, 'home' de volta à caminha).
+    let budget = R.catSpeed * dt;
+    while (cat.path.length && budget > EPS) {
+      const p = cat.path[0];
+      budget = stepTo(cat, p, budget);
+      if (Math.abs(cat.gx - p.gx) < EPS && Math.abs(cat.gy - p.gy) < EPS) cat.path.shift();
+    }
+    if (cat.path.length) return;
+    if (cat.phase === 'out') {
+      cat.phase = 'sit';
+      cat.timer = randReal(R.catSitMin, R.catSitMax);
+    } else {
+      catHome();
+    }
+  }
+
+  function petCat() {
+    if (!cat) return { ok: false };
+    cat.heart = 0;
+    emit({ type: 'pet' });
+    return { ok: true };
+  }
+
+  function syncRituals() {
+    const floor = floorNow();
+    syncPlants(floor);
+    syncCat(floor);
+  }
+
   function frontInfo() {
     const c = line[0];
     if (!c || c.phase !== 'waiting') return null;
@@ -319,6 +475,10 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
     dt = Math.min(dt, 0.25); // proteção; o main já limita a 0,05 s
     syncBlocked();
     syncSeats();
+    syncRituals();
+    catCheckTarget();
+    updatePlants(dt);
+    updateCat(dt);
 
     // Chegadas: o tempo só corre com a fila abaixo do máximo.
     if (line.length < CYCLE.queueMax) {
@@ -456,6 +616,17 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
       if (seated) e.depth = c.gx + c.gy + 0.01;
       list.push(e);
     }
+    if (cat) {
+      list.push({
+        id: 'cat', kind: 'cat', gx: cat.gx, gy: cat.gy, dir: cat.dir,
+        pose: cat.phase === 'sleep' ? 'sleep' : cat.phase === 'sit' ? 'sit' : 'walk',
+        walk: cat.walk, heart: cat.heart, depth: cat.gx + cat.gy + 0.01,
+      });
+    }
+    for (const p of plants.values()) {
+      if (!p.thirsty) continue;
+      list.push({ id: 'thirst-' + p.itemId, kind: 'thirst', gx: p.gx, gy: p.gy, itemId: p.itemId, depth: p.gx + p.gy + 0.05 });
+    }
     return list;
   }
 
@@ -464,5 +635,5 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
     return () => listeners.delete(fn);
   }
 
-  return { update, getFront, startOrder, saveProgress, deliver, entities, subscribe };
+  return { update, getFront, startOrder, saveProgress, deliver, entities, subscribe, water, petCat };
 }

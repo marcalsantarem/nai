@@ -63,6 +63,20 @@ export const CYCLE = {
   artBonus: 1,
 };
 
+// ---------- Rituais (T-036) ----------
+// Plantas: sede a cada 60–120 s; regar rende 2 moedas. Gato: senta 5–11 s (especificação).
+// Sono e velocidade do gato são [Proposta].
+export const RITUALS = {
+  thirstMin: 60,
+  thirstMax: 120,
+  waterCoins: 2,
+  catSleepMin: 8,
+  catSleepMax: 18,
+  catSitMin: 5,
+  catSitMax: 11,
+  catSpeed: 1.1,
+};
+
 export const START_COINS = 40;
 
 // Marcos de nível (bebidas servidas).

@@ -243,10 +243,11 @@ export function incServed() {
 export function incCount() { state.count += 1; emit('count', 1); }
 
 // Clientes da casa (T-034): visitas por id. Evento { type: 'regulars', id, value }.
-export function getVisits(id) { return state.regulars[id] || 0; }
+const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+export function getVisits(id) { return REGULARS.some((r) => r.id === id) && own(state.regulars, id) ? state.regulars[id] : 0; }
 export function addVisit(id) {
   if (!REGULARS.some((r) => r.id === id)) return 0;
-  state.regulars[id] = (state.regulars[id] || 0) + 1;
+  state.regulars[id] = (own(state.regulars, id) ? state.regulars[id] : 0) + 1;
   send({ type: 'regulars', id, value: state.regulars[id] });
   return state.regulars[id];
 }

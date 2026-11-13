@@ -234,6 +234,8 @@ Módulo novo e não `state.js`: as regras ficam testáveis no Node, e o `state.j
 
 - A compra já guarda o item no estoque: fechar o app no meio da colocação não perde moedas.
 - Nada falha: chamada inválida devolve `{ ok: false }` e não altera nada.
+- Passagem (T-056): `choose` e `place` devolvem `{ ok: false, reason: 'blocks-path' }` se o item deixar sem rota a partir do HUB algum lugar de mesa, Q1–Q3 ou EXIT que tinha rota antes (mesma busca: `searchRoute` e `blockedTiles`, exportados de `sim.js`; `findRoute` = `searchRoute` ou reta). A tela mostra “Esse lugar fecha a passagem”.
+- Tipos de item e ids de `regulars` só valem se forem próprios do catálogo (sem protótipo: `constructor`, `__proto__` não passam).
 
 ## M3.4 Efeito na simulação
 
@@ -306,4 +308,8 @@ drawScene(ctx, { time, entities, layout, wall, floor, placing, now, music })
   - Clientes da casa (T-034): `REGULARS` em `data.js` (`{ id, name, favorite, requires?, look, bg, lines[3] }`; ids `marina teo lucia jorge bia`), `REGULAR_CHANCE` 0.45, `SPEECH_TIME` 4 s. `state.getVisits(id)`, `state.addVisit(id)` (evento `{ type: 'regulars', id, value }`; salvo só com ids conhecidos).
   - `sim`: na chegada, 45% de chance de um da casa fora da loja (Bia só com o Mocha liberado); pede a favorita se liberada. Ao servir, conta a visita e põe `speech: { text, p }` (fala `visitas % 3`, recomeça depois da 3ª [Proposta]); `deliver()` devolve também `regular` e `speech`. `entities()` e `getFront()` trazem `regular`; entidades também `name`, `special: false`, `speech`.
 - `sim`: `water(itemId)` (+2 moedas), `petCat()` (coração); `entities()` traz o necessário para a tela achar planta com sede e gato pelo toque.
+  - Rituais (T-036): `RITUALS` em `data.js` (sede 60–120 s, 2 moedas, gato senta 5–11 s; sono 8–18 s e 1,1 ladrilho/s [Proposta]). Nada é salvo.
+  - Planta: `itemId` = `'c,r'` do ladrilho; entidade `thirst` com `gx, gy` da âncora e `depth` = gx + gy + 0,05. Movida ou guardada, perde a sede e recomeça o tempo. `water(itemId)` → `{ ok, coins: 2 }` (sem sede: `{ ok: false }`), evento `{ type: 'water', itemId, coins }`.
+  - Gato: entidade `cat` (`pose` `sleep` na âncora da caminha, `walk`, `sit`; `depth` = gx + gy + 0,01). Passeia até um ladrilho de `freeSpots` com rota (desvia dos móveis e do balcão; sem rota, não sai). Móvel colocado no ladrilho do gato: ele volta na hora para a caminha [Proposta]; no destino do passeio: volta andando.
+  - `petCat()` → `{ ok }` e evento `{ type: 'pet' }`; sem caminha, `{ ok: false }`. Caminha na mão ou guardada: sem gato; colocada em outro lugar: o gato dorme nela.
 - `audio` (`js/audio.js`): `unlock()` no primeiro toque, `setMusic(on)`, `setRain(on)`, `sfx('step' | 'coins' | 'place')`, retomada ao voltar ao app.
