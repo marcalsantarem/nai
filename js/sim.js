@@ -2,8 +2,10 @@
 // Só avança por update(dt) e sorteia com o rng recebido (roda em Node).
 import {
   RECIPES, CYCLE, ROOM, CUSTOMER_NAMES, CUSTOMER_LOOKS, BARISTA_LOOK, DECOR_ITEMS, TABLE_SEATS,
+  REGULARS, REGULAR_CHANCE, SPEECH_TIME,
 } from './data.js';
 import * as stateModule from './state.js';
+import { unlockedFor } from './state.js';
 import sharedDecor, { createDecor } from './decor.js';
 
 const HEART_TIME = 1.2; // s, coração subindo
@@ -115,8 +117,13 @@ function dirOf(dx, dy, fallback) {
 export function createSim({ rng = Math.random, store = stateModule, recipes, decor } = {}) {
   // Mesma decoração da tela quando usa o state do jogo; senão, uma ligada ao store injetado.
   const layout = decor || (store === stateModule ? sharedDecor : createDecor({ store }));
-  // M2: só as receitas iniciais (decisão 20). A liberação por nível entra no M4.
-  const menu = recipes || RECIPES.filter((r) => r.unlockAt === 0);
+  // Pedidos só das receitas liberadas pelas servidas do store (T-033); `recipes` fixa o cardápio (testes).
+  const menu = () => {
+    if (recipes) return recipes;
+    let served = 0;
+    try { served = store.get().served; } catch (e) { served = 0; }
+    return unlockedFor(served);
+  };
   const rand = () => { const v = Number(rng()); return v >= 0 && v < 1 ? v : 0; };
   const randInt = (a, b) => a + Math.floor(rand() * (b - a + 1));
   const randReal = (a, b) => a + rand() * (b - a);
@@ -149,16 +156,29 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
     return pick(free.length ? free : CUSTOMER_NAMES);
   }
 
+  // Cliente da casa (T-034): 45% de chance, entre os que não estão na loja e já podem vir
+  // (a Bia só com o Mocha liberado). Sem candidato: cliente comum.
+  function pickRegular(list) {
+    if (rand() >= REGULAR_CHANCE) return null;
+    const here = new Set(customers.map((c) => c.regular).filter(Boolean));
+    const ok = REGULARS.filter((r) => !here.has(r.id) && (!r.requires || list.some((m) => m.id === r.requires)));
+    return ok.length ? pick(ok) : null;
+  }
+
   function spawn() {
     const L = CUSTOMER_LOOKS;
-    const recipe = pick(menu);
+    const list = menu();
+    const reg = pickRegular(list);
+    // Favorita quando liberada; senão uma receita liberada.
+    const recipe = (reg && list.find((m) => m.id === reg.favorite)) || pick(list);
     const c = {
       id: 'c' + nextId++,
-      name: pickName(),
-      look: {
+      name: reg ? reg.name : pickName(),
+      look: reg ? { ...reg.look } : {
         skin: pick(L.skins), hair: pick(L.hairs), shirt: pick(L.shirts),
         pants: pick(L.pants), hairStyle: pick(L.hairStyles), apron: false,
       },
+      regular: reg ? reg.id : null, special: false, speech: null,
       recipeId: recipe.id,
       phase: 'entering',
       gx: ROOM.door.gx, gy: ROOM.door.gy,
@@ -290,7 +310,7 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
   function frontInfo() {
     const c = line[0];
     if (!c || c.phase !== 'waiting') return null;
-    return { id: c.id, name: c.name, look: c.look, recipeId: c.recipeId, gx: c.gx, gy: c.gy };
+    return { id: c.id, name: c.name, look: c.look, recipeId: c.recipeId, regular: c.regular, gx: c.gx, gy: c.gy };
   }
 
   function update(dt) {
@@ -316,6 +336,10 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
       if (c.heart !== null) {
         c.heart += dt / HEART_TIME;
         if (c.heart >= 1) c.heart = null;
+      }
+      if (c.speech) {
+        c.speech.p += dt / SPEECH_TIME;
+        if (c.speech.p >= 1) c.speech = null;
       }
       if (c.phase === 'toSeat') {
         if (movePath(c, dt)) {
@@ -374,6 +398,8 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
     openOrder = null;
     store.addCoins(total);
     store.incServed();
+    let speech = null;
+    if (c.regular) speech = sayLine(c);
 
     line.shift();
     c.cup = true;
@@ -388,11 +414,24 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
       leaveWithCup(c);
     }
 
-    const result = { price, tip, bonus, total };
+    const result = { price, tip, bonus, total, regular: c.regular, speech };
     lastFront = null;
     emit({ type: 'front', customer: null });
     emit({ type: 'paid', ...result });
     return result;
+  }
+
+  // Fala da visita: a próxima da sequência pelas visitas salvas; depois da 3ª recomeça [Proposta].
+  // A visita conta ao ser servido.
+  function sayLine(c) {
+    const reg = REGULARS.find((r) => r.id === c.regular);
+    if (!reg) return null;
+    let visits = 0;
+    try { visits = Number(store.get().regulars?.[reg.id]) || 0; } catch (e) { visits = 0; }
+    const text = reg.lines[visits % reg.lines.length];
+    try { if (typeof store.addVisit === 'function') store.addVisit(reg.id); } catch (e) { /* segue */ }
+    c.speech = { text, p: 0 };
+    return text;
   }
 
   function entities() {
@@ -411,6 +450,8 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
           ? { recipeId: c.recipeId, label: RECIPES.find((r) => r.id === c.recipeId).name }
           : null,
         heart: c.heart,
+        name: c.name, regular: c.regular, special: c.special,
+        speech: c.speech ? { ...c.speech } : null,
       };
       if (seated) e.depth = c.gx + c.gy + 0.01;
       list.push(e);

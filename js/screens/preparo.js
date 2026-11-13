@@ -1,6 +1,7 @@
 // Tela Preparo (T-020): passos da receita, xícara com camadas, ingredientes e entrega.
 import { iconSvg, ICONS } from '../icons.js';
 import { RECIPES, INGREDIENTS, ART_STEP } from '../data.js';
+import { sfx } from '../audio.js';
 
 // ---------- Xícara (SVG do mockup, viewBox 240 × 190) ----------
 const CUP_PATH = 'M62 56h116v50a58 52 0 0 1-116 0z';
@@ -210,6 +211,7 @@ function saveProgress() {
 
 function advance() {
   done += 1;
+  sfx('step');
   saveProgress();
   render(true);
 }
@@ -241,6 +243,7 @@ function deliver() {
   if (leaving || left() > 0) return;
   leaving = true;
   game.sim.deliver({ art });
+  sfx('coins');
   game.go('cafeteria');
 }
 

@@ -301,5 +301,9 @@ drawScene(ctx, { time, entities, layout, wall, floor, placing, now, music })
 ### M4.2 APIs novas (quem implementa registra aqui os nomes finais)
 
 - `state`: nível, receitas liberadas pelos marcos 6/10/14/24, `regulars` (visitas por id), `settings` (`music`, `rain`), `name` (até 24).
+  - Receitas (T-033): `unlockedFor(served)` / `getUnlocked()` (lista de RECIPES com `unlockAt <= served`), `isUnlocked(id, served?)`, `recipeProgressFor(served)` / `getRecipeProgress()` → `{ next, left, done, span, pct }`, contado desde o marco anterior; depois da última, `next: null`, `pct: 100`. Ao atingir um marco, `subscribe` recebe também `{ type: 'unlock', recipeId }` (sem gravar). Nível: `getLevel()` (já existia).
+  - `sim` sorteia o pedido entre `unlockedFor(store.get().served)` a cada chegada; `createSim({ recipes })` fixa o cardápio (testes). Barra da Cafeteria: “Faltam N bebidas para liberar o X”; depois da última, cheia e “Todas as receitas liberadas” [Proposta].
+  - Clientes da casa (T-034): `REGULARS` em `data.js` (`{ id, name, favorite, requires?, look, bg, lines[3] }`; ids `marina teo lucia jorge bia`), `REGULAR_CHANCE` 0.45, `SPEECH_TIME` 4 s. `state.getVisits(id)`, `state.addVisit(id)` (evento `{ type: 'regulars', id, value }`; salvo só com ids conhecidos).
+  - `sim`: na chegada, 45% de chance de um da casa fora da loja (Bia só com o Mocha liberado); pede a favorita se liberada. Ao servir, conta a visita e põe `speech: { text, p }` (fala `visitas % 3`, recomeça depois da 3ª [Proposta]); `deliver()` devolve também `regular` e `speech`. `entities()` e `getFront()` trazem `regular`; entidades também `name`, `special: false`, `speech`.
 - `sim`: `water(itemId)` (+2 moedas), `petCat()` (coração); `entities()` traz o necessário para a tela achar planta com sede e gato pelo toque.
 - `audio` (`js/audio.js`): `unlock()` no primeiro toque, `setMusic(on)`, `setRain(on)`, `sfx('step' | 'coins' | 'place')`, retomada ao voltar ao app.

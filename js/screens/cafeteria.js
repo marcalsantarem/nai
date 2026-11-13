@@ -1,13 +1,11 @@
 // Tela Cafeteria (tela inicial): topo, cena isométrica, cartão do pedido e navegação.
 import { VERSION } from '../version.js';
 import { iconSvg } from '../icons.js';
-import { RECIPES, RECIPE_MILESTONES } from '../data.js';
+import { RECIPES } from '../data.js';
 import { project } from '../iso.js';
 import decor from '../decor.js';
 
 // Barra do M2: conta as servidas até o primeiro marco e para ali (decisões 20 e 23).
-const NEXT_AT = RECIPE_MILESTONES[0];
-const NEXT_RECIPE = RECIPES.find((r) => r.unlockAt === NEXT_AT);
 
 const PORTRAIT_SIZE = 54; // área interna do retrato (60 menos o contorno)
 const TAP_RADIUS_PT = 22; // raio mínimo do toque no primeiro cliente
@@ -27,18 +25,16 @@ const NAV = [
   ['guests', 'Clientes'],
 ];
 
-function progressInfo(served) {
-  const span = NEXT_AT;
-  const done = Math.min(span, Math.max(0, served));
-  const left = span - done;
-  const pct = Math.round((done / span) * 100);
-  // espaço inseparável no nome: evita "o" / "Mocha" órfão na última linha
-  const recipe = `o ${NEXT_RECIPE.name}`;
-  let caption;
-  if (left === 0) caption = `O ${NEXT_RECIPE.name} chega em breve`;
-  else if (left === 1) caption = `Falta 1 bebida para liberar ${recipe}`;
-  else caption = `Faltam ${left} bebidas para liberar ${recipe}`;
-  return { pct, caption, done, span };
+// Barra e legenda pela próxima receita do estado (T-033). Depois da última: barra cheia.
+function progressInfo() {
+  const p = game.state.getRecipeProgress();
+  if (!p.next) return { ...p, caption: 'Todas as receitas liberadas' };
+  // espaço inseparável no nome: evita "o" / nome órfão na última linha
+  const recipe = `o ${p.next.name}`;
+  const caption = p.left === 1
+    ? `Falta 1 bebida para liberar ${recipe}`
+    : `Faltam ${p.left} bebidas para liberar ${recipe}`;
+  return { ...p, caption };
 }
 
 function template() {
@@ -132,10 +128,12 @@ function draw() {
 
 function renderTop() {
   const s = game.state.get();
-  const p = progressInfo(s.served);
+  const p = progressInfo();
   refs.level.textContent = String(game.state.getLevel());
   refs.progress.style.setProperty('--value', `${p.pct}%`);
-  refs.progress.setAttribute('aria-label', `Progresso: ${p.done} de ${p.span} bebidas para a próxima receita`);
+  refs.progress.setAttribute('aria-label', p.next
+    ? `Progresso: ${p.done} de ${p.span} bebidas para a próxima receita`
+    : 'Todas as receitas liberadas');
   refs.caption.textContent = p.caption;
   refs.coins.textContent = String(s.coins);
   refs.coinsPill.setAttribute('aria-label', `${s.coins} moedas`);

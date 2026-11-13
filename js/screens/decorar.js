@@ -5,6 +5,7 @@ import decor from '../decor.js';
 import { DECOR_ITEMS, SHOP_TABS, WALL_COLORS, FLOORS, WALL_SLOTS } from '../data.js';
 import { project } from '../iso.js';
 import * as art from '../art.js';
+import { sfx } from '../audio.js';
 
 const ITEM = Object.fromEntries(DECOR_ITEMS.map((d) => [d.id, d]));
 const VB = art.SCENE_VIEWBOX;
@@ -216,7 +217,7 @@ function onSceneClick(e) {
   if (placing) {
     const spot = spotAt(vx, vy, radius);
     if (!spot) return; // fora dos livres: nada acontece
-    if (placing.chosen && sameSpot(spot, placing.chosen)) decor.place(spot);
+    if (placing.chosen && sameSpot(spot, placing.chosen)) { if (decor.place(spot).ok) sfx('place'); }
     else decor.choose(spot);
   } else {
     const ref = itemAt(vx, vy, radius);

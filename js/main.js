@@ -1,6 +1,7 @@
 // Ponto de entrada: estado, simulação, laço principal e troca de telas.
 import * as state from './state.js';
 import { createSim } from './sim.js';
+import { unlock } from './audio.js';
 import cafeteria from './screens/cafeteria.js';
 import preparo from './screens/preparo.js';
 import decorar from './screens/decorar.js';
@@ -54,5 +55,6 @@ function blockSystemGestures() {
 }
 
 blockSystemGestures();
+document.addEventListener('pointerdown', unlock, { capture: true, passive: true }); // som só após o toque; também retoma
 go('cafeteria');
 requestAnimationFrame(frame);

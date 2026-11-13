@@ -111,6 +111,29 @@ export const CUSTOMER_NAMES = [
   'Thiago', 'Vinícius',
 ];
 
+// ---------- Clientes da casa (T-034; especificação, Conteúdo) ----------
+// Cores de pele, cabelo, blusa e fundo do retrato (bg) tiradas do mockup (04-clientes);
+// calça e toda a Bia (fora do mockup) são [Proposta]. requires: receita que precisa estar liberada.
+export const REGULAR_CHANCE = 0.45;
+export const SPEECH_TIME = 4; // s, balão de fala depois de servido
+export const REGULARS = [
+  { id: 'marina', name: 'Marina', favorite: 'latte',
+    look: { skin: '#e9b98f', hair: '#8a4b3a', shirt: '#ffc94d', pants: '#5b4a7a', hairStyle: 'long', apron: false }, bg: '#ffd9cf',
+    lines: ['Estou escrevendo um livro. O capítulo 3 nasceu aqui.', 'O desenho na espuma é a melhor parte do meu dia.', 'Hoje a história andou. Deve ser o café.'] },
+  { id: 'teo', name: 'Téo', favorite: 'espresso',
+    look: { skin: '#c98d62', hair: '#2a2540', shirt: '#9cc3f0', pants: '#2a2954', hairStyle: 'short', apron: false }, bg: '#cfe6f7',
+    lines: ['Prova amanhã. Preciso de café e coragem.', 'Passei na prova! Esse espresso dá sorte.', 'Posso estudar naquela mesa de novo?'] },
+  { id: 'lucia', name: 'Dona Lúcia', favorite: 'tea',
+    look: { skin: '#f6d2b8', hair: '#e6e1dc', shirt: '#c9b6f0', pants: '#403f7a', hairStyle: 'bun', apron: false }, bg: '#e7e2fa',
+    lines: ['Esse cantinho me lembra a cozinha da minha mãe.', 'Trouxe meu tricô hoje, vou ficar um tempinho.', 'Com chuva, chá fica ainda melhor.'] },
+  { id: 'jorge', name: 'Seu Jorge', favorite: 'cappuccino',
+    look: { skin: '#9b6a48', hair: '#f3efe3', shirt: '#9ad9c2', pants: '#8a5a3c', hairStyle: 'short', apron: false }, bg: '#cfeedd',
+    lines: ['No meu tempo, cappuccino era só no domingo.', 'Vou deixar o jornal aqui para o próximo.', 'Esse é o melhor cappuccino do bairro.'] },
+  { id: 'bia', name: 'Bia', favorite: 'mocha', requires: 'mocha',
+    look: { skin: '#d9a27a', hair: '#2a2540', shirt: '#ffa25c', pants: '#4a2f27', hairStyle: 'long', apron: false }, bg: '#ffe2c9',
+    lines: ['Chocolate com café foi a melhor invenção.', 'Vim desenhar a cafeteria. Posso?', 'Terminei o desenho. Ficou a sua cara.'] },
+];
+
 // Cada parte sorteada à parte. Tons dentro da paleta do jogo.
 export const CUSTOMER_LOOKS = {
   skins: ['#f6d2b8', '#e9b98f', '#d9a27a', '#c98d62', '#a86b45', '#7e4e33'],
