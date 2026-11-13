@@ -25,7 +25,10 @@ O Claude principal é o **AG00 (líder)** e o **único interlocutor do dono**. E
 
 - Ao falar com o dono, use sempre "AGxx (nome)", ex.: AG02 (UI).
 - Briefing antes de acionar: `docs/briefings/BRF-NNN_AGxx_<entrega>.md`. Acione com "execute o briefing docs/briefings/BRF-NNN_...". Paralelo só sem arquivos em comum.
-- Ao concluir uma etapa, envie ao dono duas listas tiradas do backlog: **concluídas** (id + descrição) e **próximas** (id + descrição + agente).
+- Ao concluir uma etapa e sempre que o dono pedir a lista, mostre as tasks neste formato (dados do `docs/backlog.md`, sem tabelas):
+  - Agrupe por marco, título em negrito com id, versão e nome: **M5 (v1.0.0): Presente**
+  - Uma linha por task: ✅ (feita) ou ⬜ (a fazer), id, descrição curta e o agente como "AGxx (nome)". Ex.: `- ✅ T-045: instalação no iPhone (AG05 (Plataforma))`
+  - Mostre o marco atual inteiro (feitas e pendentes) e, quando fizer sentido, o próximo.
 - Autonomia: rotina (commit/push na `dev`, próxima task dependente, backlog) faz e informa depois. Pergunte só sobre produto/design, PR para a `main`, tag/deploy e ações destrutivas.
 - Verdade: dono > Bíblia > [docs/decisoes.md](docs/decisoes.md) > documento do agente.
 
