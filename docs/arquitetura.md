@@ -283,3 +283,23 @@ drawScene(ctx, { time, entities, layout, wall, floor, placing, now, music })
 4. Sala começa sem a caminha; o gato vem com a compra (decisão 29). `INITIAL_DECOR` deve ser ajustado na T-025.
 5. 4 espaços altos e 4 médios na parede esquerda (decisão 30).
 6. Nome editável em Ajustes (decisão 16), edição no M4.
+
+## M4 — Vida da loja (contrato do AG00)
+
+### M4.1 Entidades novas e campos novos
+
+```js
+// cliente: campos novos
+{ kind: 'customer', ..., regular: 'marina' | null, special: false,
+  speech: null }          // { text, p } p 0..1 durante ~4 s depois de servido; balão de fala acima da cabeça
+// gato (só existe com a caminha colocada; a caminha passa a ser desenhada vazia)
+{ id: 'cat', kind: 'cat', gx, gy, dir, pose: 'sleep' | 'walk' | 'sit', walk, heart: null | 0..1 }
+// planta com sede (uma por planta regável com sede)
+{ id: 'thirst-<itemId>', kind: 'thirst', gx, gy, itemId, depth }   // balão redondo com gota acima da planta
+```
+
+### M4.2 APIs novas (quem implementa registra aqui os nomes finais)
+
+- `state`: nível, receitas liberadas pelos marcos 6/10/14/24, `regulars` (visitas por id), `settings` (`music`, `rain`), `name` (até 24).
+- `sim`: `water(itemId)` (+2 moedas), `petCat()` (coração); `entities()` traz o necessário para a tela achar planta com sede e gato pelo toque.
+- `audio` (`js/audio.js`): `unlock()` no primeiro toque, `setMusic(on)`, `setRain(on)`, `sfx('step' | 'coins' | 'place')`, retomada ao voltar ao app.
