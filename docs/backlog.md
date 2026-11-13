@@ -75,9 +75,9 @@ Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 →
 | T-042 | Ajustes: painel deslizante, música e chuva, nome da cafeteria editável (decisão 16), “Recomeçar do zero” em dois toques | M | AG02 (UI) | feita (BRF-042) |
 | T-057 | Animação “+N” ao ganhar moedas (entrega e regar) | P | AG02 (UI) | feita (BRF-041) |
 | T-058 | Setters oficiais de ajustes e nome no estado | P | AG01 (Gameplay) | feita (BRF-043) |
-| T-043 | Validação do M4: 8 receitas liberam nos marcos, clientes da casa, rituais, áudio e telas novas | M | AG06 (QA) | a fazer |
+| T-043 | Validação do M4: 8 receitas liberam nos marcos, clientes da casa, rituais, áudio e telas novas | M | AG06 (QA) | feita (BRF-044): passa com ressalvas, ver docs/qa/qa-M4.md |
 | T-056 | Resto do D1 (tipos sem protótipo em `decor.js` e `regulars`) e impedir mesa cujos lugares fiquem sem acesso | P | AG01 (Gameplay) | feita (BRF-037) |
-| T-044 | Fechamento do M4: versão 0.4.0, PR, tag v0.4.0 | P | AG00 | a fazer |
+| T-044 | Fechamento do M4: versão 0.4.0, PR, tag v0.4.0 | P | AG00 | em andamento (versão 0.4.0 na dev; aguarda PR e tag) |
 
 Ordem: (T-033 ∥ T-038) → (T-034 ∥ T-037) → (T-035 ∥ T-036) → T-039 → T-040 → T-041 → T-042 → T-043 → T-044.
 
@@ -88,7 +88,7 @@ Ordem: (T-033 ∥ T-038) → (T-034 ∥ T-037) → (T-035 ∥ T-036) → T-039 �
 | T-045 | Manifesto, metadados da Apple e ícones (192, 512 mascarável, 180) com “Nai's Cafe” | M | AG05 (Plataforma) | a fazer |
 | T-046 | Service worker: offline, rede primeiro na navegação, cache com a versão (decisão 11) | M | AG05 (Plataforma) | a fazer |
 | T-047 | Áreas seguras e gestos do sistema no app instalado; campos de texto com 16 px | P | AG02 (UI) | a fazer |
-| T-048 | Animações de toque e acabamento: botões, moedas, transições de tela; mover as cores locais de `.prep`, `.decor` e das telas Clientes/Cardápio para `tokens.css`; legenda da barra com nome longo (3 linhas a 360/390); retorno visual ao ganhar moedas | M | AG02 (UI) | a fazer |
+| T-048 | Animações de toque e acabamento: botões, moedas, transições de tela; mover as cores locais de `.prep`, `.decor` e das telas Clientes/Cardápio para `tokens.css`; legenda da barra com nome longo (3 linhas a 360/390); ressalvas D1–D6 do `docs/qa/qa-M4.md` (gota e gato na Decorar, nome longo no topo, fala sobre o pedido, marca no ladrilho que fecha a passagem, barra de rolagem do Cardápio, largura do `body`) | M | AG02 (UI) | a fazer |
 | T-049 | Desempenho: 60 fps em iPhone de 2020 em diante com a sala cheia | M | AG03 (Arte) | a fazer |
 | T-050 | Teste no iPhone: instalado, tela cheia, modo avião, som depois de trocar de app, chave de silêncio | M | Dono + AG06 (QA) | a fazer |
 | T-035 | Cliente especial a cada 6 clientes, com recadinho (depende da decisão 14) | P | AG01 (Gameplay) | bloqueada (aguarda recadinhos do dono; decisão 34) |
