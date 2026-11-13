@@ -3,6 +3,7 @@ import { VERSION } from '../version.js';
 import { iconSvg } from '../icons.js';
 import { RECIPES, RECIPE_MILESTONES } from '../data.js';
 import { project } from '../iso.js';
+import decor from '../decor.js';
 
 // Barra do M2: conta as servidas até o primeiro marco e para ali (decisões 20 e 23).
 const NEXT_AT = RECIPE_MILESTONES[0];
@@ -88,6 +89,7 @@ let unsubs = [];
 let front = null; // primeiro cliente parado em Q1, ou null
 let time = 0;
 let view = null; // { cssW, cssH, dpr, scale }
+let layout = null; // decor.sceneLayout(), refeito no evento 'decor'
 
 // Tamanho da cena: a sala ocupa a largura da coluna cortando 18 px de cada ponta
 // (a 390 px dá os 440 × 390 do mockup); reduz se não couber na altura.
@@ -118,7 +120,12 @@ function draw() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.setTransform(k, 0, 0, canvas.height / vb.h, -vb.x * k, -vb.y * (canvas.height / vb.h));
-  art.drawScene(ctx, { time, entities: game.sim.entities() });
+  const s = game.state.get();
+  const d = new Date();
+  art.drawScene(ctx, {
+    time, entities: game.sim.entities(), layout, wall: s.wall, floor: s.floor,
+    now: { h: d.getHours(), m: d.getMinutes() },
+  });
 }
 
 // ---------- Topo: nível, barra e moedas (seguem o estado) ----------
@@ -204,7 +211,8 @@ function onClick(e) {
   if (e.target.closest('[data-action="prepare"]')) { openOrder(); return; }
   const item = e.target.closest('.nav__item');
   if (!item) return;
-  // Café já está ativo; os outros itens ainda não têm ação (T-007).
+  // Café já está ativo; Cardápio e Clientes ainda não têm tela.
+  if (item.dataset.nav === 'decor') game.go('decorar');
 }
 
 export default {
@@ -225,10 +233,15 @@ export default {
     resizeObs.observe(sceneEl);
 
     front = game.sim.getFront();
+    layout = decor.sceneLayout();
     renderTop();
     renderOrder();
     unsubs = [
-      game.state.subscribe(() => { if (root) renderTop(); }),
+      game.state.subscribe((ev) => {
+        if (!root) return;
+        if (ev.type === 'decor') layout = decor.sceneLayout();
+        else renderTop();
+      }),
       game.sim.subscribe((ev) => {
         if (!root || ev.type !== 'front') return;
         front = ev.customer;
@@ -253,7 +266,7 @@ export default {
     if (resizeObs) resizeObs.disconnect();
     if (canvas) canvas.removeEventListener('click', onSceneClick);
     if (root) root.removeEventListener('click', onClick);
-    root = game = refs = sceneEl = canvas = ctx = view = resizeObs = front = null;
+    root = game = refs = sceneEl = canvas = ctx = view = resizeObs = front = layout = null;
   },
   update(dt) {
     time += dt;

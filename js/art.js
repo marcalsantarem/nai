@@ -7,6 +7,8 @@ import {
   tile, box, faceRect, cylinder, wall, wallTransform, sortByDepth, GRID,
 } from './iso.js';
 import { ICONS, drawIcon } from './icons.js';
+// Só constantes (briefing BRF-024): layout inicial, âncoras, faixas e cores padrão.
+import { DECOR_ITEMS, WALL_SLOTS, WALL_COLORS, FLOORS, DEFAULT_WALL, DEFAULT_FLOOR, INITIAL_DECOR } from './data.js';
 
 export const SCENE_VIEWBOX = { x: -186, y: -132, w: 372, h: 330 };
 
@@ -50,13 +52,36 @@ function at(ctx, x, y, fn, s = 1) {
 
 // ---------- Piso e paredes ----------
 
-export function drawFloor(ctx) {
-  const l = project(0, GRID), f = project(GRID, GRID), r = project(GRID, 0);
+const findById = (list, id, fallback) => list.find((e) => e.id === id) || list.find((e) => e.id === fallback);
+
+// Piso. floor = objeto de FLOORS (ou id): 'checker' (ladrilhos a/b) ou 'planks' (tábuas a/b ao longo de gx,
+// 3 por ladrilho, emendas desencontradas). As bordas do piso não mudam.
+const PLANK_ROWS = 3;   // tábuas por ladrilho, ao longo de gy
+const PLANK_LEN = 1.5;  // comprimento da tábua em ladrilhos
+export function drawFloor(ctx, floor = DEFAULT_FLOOR) {
+  paintFloor(ctx, typeof floor === 'string' || !floor ? findById(FLOORS, floor, DEFAULT_FLOOR) : floor, GRID);
+}
+
+// Piso de n × n ladrilhos a partir de (0, 0), com as bordas. Serve a sala (n = GRID) e a miniatura.
+function paintFloor(ctx, f0, n) {
+  const l = project(0, n), f = project(n, n), r = project(n, 0);
   poly(ctx, [l.x, l.y, f.x, f.y, f.x, f.y + 10, l.x, l.y + 10], '#8a5a3c');
   poly(ctx, [r.x, r.y, f.x, f.y, f.x, f.y + 10, r.x, r.y + 10], '#6f452d');
-  for (let gx = 0; gx < GRID; gx++) {
-    for (let gy = 0; gy < GRID; gy++) {
-      tile(ctx, gx, gy, (gx + gy) % 2 ? '#e2b181' : '#ecc194', '#d9a878');
+  if (f0.pattern === 'planks') {
+    const d = 1 / PLANK_ROWS;
+    for (let k = 0; k < n * PLANK_ROWS; k++) {
+      const shift = ((k * 2) % 3) * (PLANK_LEN / 3);
+      for (let i = -1, g = -shift; g < n; i++, g += PLANK_LEN) {
+        const g0 = Math.max(0, g), g1 = Math.min(n, g + PLANK_LEN);
+        if (g1 <= g0) continue;
+        tile(ctx, g0, k * d, (i + k) % 2 ? f0.b : f0.a, f0.grout, g1 - g0, d);
+      }
+    }
+    return;
+  }
+  for (let gx = 0; gx < n; gx++) {
+    for (let gy = 0; gy < n; gy++) {
+      tile(ctx, gx, gy, (gx + gy) % 2 ? f0.b : f0.a, f0.grout);
     }
   }
 }
@@ -93,31 +118,27 @@ export function drawSmallFrame(ctx, x, y) {
   roundRect(ctx, x + 3, y + 3, 10, 10, 1, BLUE);
 }
 
-// Relógio. (x, y) = centro.
-export function drawClock(ctx, x, y) {
+// Relógio. (x, y) = centro. now = { h, m } (hora real, vinda da tela); sem now, 3:00 como no mockup.
+export function drawClock(ctx, x, y, now = null) {
   circle(ctx, x, y, 10, INK);
   circle(ctx, x, y, 8, CREAM);
+  const h = now ? now.h : 3, m = now ? now.m : 0;
+  const am = (m / 60) * Math.PI * 2, ah = (((h % 12) + m / 60) / 12) * Math.PI * 2;
   ctx.beginPath();
-  ctx.moveTo(x, y); ctx.lineTo(x, y - 5);
-  ctx.moveTo(x, y); ctx.lineTo(x + 4, y);
+  ctx.moveTo(x, y); ctx.lineTo(x + 5 * Math.sin(am), y - 5 * Math.cos(am));
+  ctx.moveTo(x, y); ctx.lineTo(x + 4 * Math.sin(ah), y - 4 * Math.cos(ah));
   strokeLine(ctx, INK, 1.4);
 }
 
-// Bandeirinhas: cordão em dois arcos de 86. (x, y) = ponta esquerda do cordão.
+// Bandeirinhas: um arco de 86 com 4 bandeiras (cada item é um arco). (x, y) = ponta esquerda do cordão.
 const BUNTING = [[16, 3.5, CORAL], [32, 5.7, YELLOW], [49, 6, BLUE], [66, 4, CREAM]];
 export function drawBunting(ctx, x, y) {
   at(ctx, x, y, () => {
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.quadraticCurveTo(43, 13, 86, 0);
-    ctx.quadraticCurveTo(129, 13, 172, 0);
     strokeLine(ctx, INK, 1);
-    for (const off of [0, 86]) {
-      for (const [cx, top, color] of BUNTING) {
-        const c = cx + off;
-        poly(ctx, [c - 4, top, c + 4, top, c, top + 9], color);
-      }
-    }
+    for (const [c, top, color] of BUNTING) poly(ctx, [c - 4, top, c + 4, top, c, top + 9], color);
   });
 }
 
@@ -204,25 +225,23 @@ export function drawStringLights(ctx, x, y, time = 0) {
   });
 }
 
-function drawLeftWall(ctx) {
-  wall(ctx, 'left', WALL_LEFT);
+// Paredes com os fixos (porta; quadro-negro e janela). wall = objeto de WALL_COLORS:
+// base e listras mudam; lambri, friso, rodapé e painéis não mudam.
+function drawLeftWall(ctx, colors) {
+  wall(ctx, 'left', colors ? { ...WALL_LEFT, ...colors.left } : WALL_LEFT);
   ctx.save();
   wallTransform(ctx, 'left');
   drawDoor(ctx, -169, 0);
-  drawPicture(ctx, -116, -99);
-  drawSmallFrame(ctx, -90, -90);
-  drawClock(ctx, -63, -98);
-  drawBunting(ctx, -176, -119);
   ctx.restore();
 }
 
-function drawRightWall(ctx, time) {
-  wall(ctx, 'right', WALL_RIGHT);
+function drawRightWall(ctx, time, colors) {
+  wall(ctx, 'right', colors ? { ...WALL_RIGHT, ...colors.right } : WALL_RIGHT);
   ctx.save();
   wallTransform(ctx, 'right');
-  drawChalkboard(ctx, 18, -112, "Nai's Cafe");
-  drawWindow(ctx, 100, -114, time);
-  drawStringLights(ctx, 3, -121, time);
+  // Afastados do mockup (18 e 100) para abrir o espaço médio entre eles (decisão 30; ROOM.reservedWall).
+  drawChalkboard(ctx, 6, -112, "Nai's Cafe");
+  drawWindow(ctx, 105, -114, time);
   ctx.restore();
 }
 
@@ -230,7 +249,7 @@ function drawRightWall(ctx, time) {
 
 // Luz da janela no chão.
 export function drawWindowLight(ctx) {
-  const p = [project(3.5, 0.1), project(5.5, 0.1), project(5.9, 2.4), project(3.9, 2.4)];
+  const p = [project(3.67, 0.1), project(5.67, 0.1), project(6.07, 2.4), project(4.07, 2.4)];
   withAlpha(ctx, 0.3, () => poly(ctx, p.flatMap((q) => [q.x, q.y]), GLOW));
 }
 
@@ -370,11 +389,12 @@ export function drawTable(ctx, x, y, { cup = true } = {}) {
 }
 
 // Luminária de chão. (x, y) = centro da sombra.
-export function drawFloorLamp(ctx, x, y) {
+// time > 0: o brilho respira devagar.
+export function drawFloorLamp(ctx, x, y, time = 0) {
   contactShadow(ctx, x, y, 9, 4.5);
   ellipse(ctx, x, y, 7, 3.5, INK);
   roundRect(ctx, x - 1.5, y - 60, 3, 60, 1, INK);
-  circle(ctx, x, y - 52, 34, GLOW, 0.2);
+  circle(ctx, x, y - 52, 34, GLOW, time ? 0.2 + 0.05 * Math.sin(time * 1.3) : 0.2);
   poly(ctx, [x - 7, y - 78, x + 7, y - 78, x + 13, y - 56, x - 13, y - 56], YELLOW);
   ellipse(ctx, x, y - 56, 13, 3.5, '#ffe08f');
 }
@@ -388,6 +408,107 @@ export function drawArmchair(ctx, x, y) {
     box(ctx, -0.34, -0.17, 0.148, 0.51, 25, c);
     box(ctx, -0.192, -0.17, 0.38, 0.508, 15, '#ffca52');
     box(ctx, 0.192, -0.168, 0.148, 0.51, 25, c);
+  });
+}
+
+// Pufe lilás com botão. (x, y) = centro da base.
+export function drawPouf(ctx, x, y) {
+  contactShadow(ctx, x, y, 13, 6.5);
+  cylinder(ctx, x, y, 11 / 42, 12, '#c9b6f0', '#9a86c9');
+  ellipse(ctx, x, y - 12, 7.5, 3.6, '#d8c9f5');
+  ellipse(ctx, x, y - 12, 1.8, 1, '#9a86c9');
+}
+
+// Mesinha redonda com vaso de flores. (x, y) = centro da sombra.
+export function drawFlowerTable(ctx, x, y) {
+  contactShadow(ctx, x, y, 12, 6);
+  cylinder(ctx, x, y, 2 / 42, 18, '#8a5a3c', '#6b462e');
+  cylinder(ctx, x, y - 18, 12 / 42, 3, '#f8e6c8', '#c98a5a');
+  cylinder(ctx, x, y - 21, 3.6 / 42, 9, BLUE, '#7aa3d4');
+  ctx.beginPath();
+  ctx.moveTo(x, y - 30); ctx.lineTo(x - 5, y - 37);
+  ctx.moveTo(x, y - 30); ctx.lineTo(x + 4, y - 39);
+  ctx.moveTo(x, y - 30); ctx.lineTo(x, y - 44);
+  strokeLine(ctx, '#4fa87a', 1);
+  ellipse(ctx, x - 4, y - 32, 3.2, 1.6, '#6cc58f');
+  ellipse(ctx, x + 4, y - 33, 3.2, 1.6, '#4fa87a');
+  for (const [dx, dy, color] of [[-5, -38, CORAL], [4, -40, YELLOW], [0, -45, '#ffb3a6']]) {
+    circle(ctx, x + dx, y + dy, 3.4, color);
+    circle(ctx, x + dx, y + dy, 1.2, CREAM);
+  }
+}
+
+// Notas musicais subindo (vitrola com a música ligada). (x, y) = ponto de saída.
+function drawNotes(ctx, x, y, time) {
+  for (let i = 0; i < 2; i++) {
+    const p = (time * 0.45 + i * 0.5) % 1;
+    const nx = x + 4 + p * 10 + Math.sin((p + i) * 6) * 2, ny = y - p * 24;
+    withAlpha(ctx, Math.sin(p * Math.PI), () => {
+      ellipse(ctx, nx, ny, 2.3, 1.7, INK);
+      ctx.fillStyle = INK;
+      ctx.fillRect(nx + 1.4, ny - 8, 1, 8);
+      ctx.fillRect(nx + 1.4, ny - 8, 3.2, 1.4);
+    });
+  }
+}
+
+// Vitrola: móvel de madeira com toca-discos. (x, y) = centro da base. music liga as notas.
+export function drawRecordPlayer(ctx, x, y, { time = 0, music = false } = {}) {
+  contactShadow(ctx, x, y, 16, 8);
+  at(ctx, x, y, () => {
+    box(ctx, -0.26, -0.22, 0.52, 0.44, 20, '#8a5a3c', { top: '#b07a52' });
+    faceRect(ctx, 'right', 0.26, -0.16, 0.16, 5, 15, '#6b462e');
+    faceRect(ctx, 'left', 0.22, -0.2, 0.2, 13, 15, '#c98a5a');
+    box(ctx, -0.22, -0.18, 0.44, 0.36, 3, CREAM, { z: 20 });
+  });
+  ellipse(ctx, x, y - 23, 9.5, 4.8, '#2a2540');
+  ellipse(ctx, x, y - 23, 6, 3, '#3d3a5c');
+  ellipse(ctx, x, y - 23, 2.4, 1.2, CORAL);
+  ctx.beginPath();
+  ctx.moveTo(x + 11, y - 27); ctx.lineTo(x + 9, y - 21); ctx.lineTo(x + 4, y - 22);
+  strokeLine(ctx, INK, 1.2);
+  circle(ctx, x + 11, y - 27, 1.6, INK);
+  if (music) drawNotes(ctx, x + 2, y - 32, time);
+}
+
+// ---------- Itens de parede ----------
+// No plano local da parede (já cisalhado): (x, y) = centro do espaço na horizontal e chão (y = 0).
+
+// Planta pendente: gancho, cordas, vaso e ramos caindo.
+export function drawHangingPlant(ctx, x, y) {
+  at(ctx, x, y, () => {
+    circle(ctx, 0, -104, 1.3, INK);
+    ctx.beginPath();
+    ctx.moveTo(0, -104); ctx.lineTo(-6.5, -85);
+    ctx.moveTo(0, -104); ctx.lineTo(6.5, -85);
+    strokeLine(ctx, INK, 0.7);
+    for (const [dx, dy, r, color] of [[-7, -78, 3, '#4fa87a'], [-8.5, -72, 2.8, '#6cc58f'], [-7.5, -66, 2.6, '#4fa87a'], [-9, -60, 2.3, '#6cc58f'], [8, -77, 2.8, '#6cc58f'], [9, -71, 2.5, '#4fa87a']]) {
+      circle(ctx, dx, dy, r, color);
+    }
+    circle(ctx, -4, -88, 4.2, '#4fa87a');
+    circle(ctx, 4, -89, 4.2, '#6cc58f');
+    circle(ctx, 0, -91, 3.6, '#4fa87a');
+    roundRect(ctx, -7, -86, 14, 10, 2.5, '#d9735b');
+    roundRect(ctx, -8, -87, 16, 3, 1.5, '#f08a70');
+  });
+}
+
+// Prateleira de xícaras: duas tábuas com mãos-francesas.
+const SHELF_CUPS = [[[-8, CREAM], [1, CORAL], [9.5, MINT]], [[-7, YELLOW], [3, BLUE]]];
+function drawShelfCup(ctx, cx, y, color) {
+  roundRect(ctx, cx - 3.2, y - 6.5, 6.4, 6.5, 1.5, color);
+  ctx.beginPath();
+  ctx.arc(cx + 3.6, y - 3.6, 1.8, -Math.PI / 2, Math.PI / 2);
+  strokeLine(ctx, color, 1.1);
+}
+export function drawCupShelf(ctx, x, y) {
+  at(ctx, x, y, () => {
+    [[-66, SHELF_CUPS[0]], [-88, SHELF_CUPS[1]]].forEach(([py, cups]) => {
+      for (const bx of [-10, 9]) poly(ctx, [bx, py, bx + 2.5, py, bx, py + 6], '#6b462e');
+      for (const [cx, color] of cups) drawShelfCup(ctx, cx, py, color);
+      roundRect(ctx, -14, py, 28, 3.5, 1, '#8a5a3c');
+      roundRect(ctx, -14, py, 28, 1.4, 0.7, '#c98a5a');
+    });
   });
 }
 
@@ -607,27 +728,294 @@ export function drawHeart(ctx, x, y, p) {
   });
 }
 
-// ---------- Composição inicial ----------
+// ---------- Itens da decoração ----------
 
-// Objetos da sala em grade; desenhados em ordem crescente de gx + gy.
-// As luminárias pendentes ficam penduradas sobre o balcão: profundidade logo após ele.
-// A barista não está aqui: vem como entidade da simulação (arquitetura, seção 5).
-export const INITIAL_LAYOUT = [
-  { id: 'bookshelf', gx: 0.26, gy: 2.1, draw: drawBookshelf },
-  { id: 'counter', gx: 2.25, gy: 1.3, draw: drawCounter },
-  { id: 'pendant1', gx: 1.5, gy: 1.3, h: 75, depth: 3.56, draw: drawPendantLamp },
-  { id: 'pendant2', gx: 2.9, gy: 1.3, h: 75, depth: 3.57, draw: drawPendantLamp },
-  { id: 'plant', gx: 0.5, gy: 3.5, draw: drawPlant },
-  { id: 'monstera', gx: 5.4, gy: 0.55, draw: drawMonstera },
-  { id: 'catbed', gx: 1.5, gy: 5, draw: (ctx, x, y, t) => drawCatBed(ctx, x, y, { time: t }) },
-  { id: 'stool1', gx: 3.05, gy: 3.8, draw: drawStool },
-  { id: 'table', gx: 3.7, gy: 3.8, draw: drawTable },
-  { id: 'stool2', gx: 4.35, gy: 3.8, draw: drawStool },
-  { id: 'floorlamp', gx: 5.5, gy: 3.2, draw: drawFloorLamp },
-  { id: 'armchair', gx: 5, gy: 5, draw: drawArmchair },
+const ITEM = new Map(DECOR_ITEMS.map((d) => [d.id, d]));
+
+// Mesa com os dois banquinhos (desenho único: miniatura e fantasma). (x, y) = centro da sombra da mesa.
+const STOOL_DX = 0.65; // banquinhos a ±0,65 em gx (TABLE_SEATS)
+function drawTableSet(ctx, x, y) {
+  const d = project(STOOL_DX, 0);
+  drawStool(ctx, x - d.x, y - d.y);
+  drawTable(ctx, x, y);
+  drawStool(ctx, x + d.x, y + d.y);
+}
+
+// Itens de chão: (ctx, x, y, opts) com (x, y) = project(âncora).
+const FLOOR_DRAW = {
+  pouf: (ctx, x, y) => drawPouf(ctx, x, y),
+  plant: (ctx, x, y) => drawPlant(ctx, x, y),
+  flowerTable: (ctx, x, y) => drawFlowerTable(ctx, x, y),
+  rug: (ctx, x, y) => drawRoundRug(ctx, x, y),
+  monstera: (ctx, x, y) => drawMonstera(ctx, x, y),
+  floorLamp: (ctx, x, y, o) => drawFloorLamp(ctx, x, y, o.time),
+  armchair: (ctx, x, y) => drawArmchair(ctx, x, y),
+  recordPlayer: (ctx, x, y, o) => drawRecordPlayer(ctx, x, y, o),
+  table: (ctx, x, y) => drawTableSet(ctx, x, y),
+  bookshelf: (ctx, x, y) => drawBookshelf(ctx, x, y),
+  catBed: (ctx, x, y, o) => drawCatBed(ctx, x, y, { time: o.time }),
+};
+
+// Itens de parede: (ctx, x, y, opts) no plano local da parede, (x, y) = centro do espaço, no chão.
+// Quadro: variant 'small' é o quadrinho azul (decisão 27); sem variant, a paisagem.
+const WALL_DRAW = {
+  bunting: (ctx, x, y) => drawBunting(ctx, x - 43, y - 119),
+  stringLights: (ctx, x, y, o) => drawStringLights(ctx, x - 46, y - 121, o.time),
+  frame: (ctx, x, y, o) => (o.variant === 'small' ? drawSmallFrame(ctx, x - 8, y - 90) : drawPicture(ctx, x - 11, y - 99)),
+  hangingPlant: (ctx, x, y) => drawHangingPlant(ctx, x, y),
+  clock: (ctx, x, y, o) => drawClock(ctx, x, y - 98, o.now),
+  cupShelf: (ctx, x, y) => drawCupShelf(ctx, x, y),
+};
+
+// Um desenho por tipo, com a mesma âncora da cena. opts: { time, alpha, now, music, variant }.
+// alpha < 1 aplica a opacidade ao item inteiro (como <g opacity> do mockup), via canvas de apoio.
+export function drawItem(ctx, type, x, y, opts = {}) {
+  const fn = FLOOR_DRAW[type] || WALL_DRAW[type];
+  if (!fn) return;
+  const { alpha = 1 } = opts;
+  if (alpha >= 1) fn(ctx, x, y, opts);
+  else groupAlpha(ctx, alpha, (c) => fn(c, x, y, opts));
+}
+
+// Opacidade de grupo: desenha num canvas de apoio com a mesma transformação e compõe com alpha.
+// Sem DOM (ou sem getTransform), cai para globalAlpha por forma.
+let scratch = null;
+function groupAlpha(ctx, alpha, paint) {
+  const cv = ctx.canvas;
+  if (!scratch && typeof document !== 'undefined') scratch = document.createElement('canvas');
+  const s = scratch && cv && typeof ctx.getTransform === 'function' ? scratch.getContext('2d') : null;
+  if (!s) { withAlpha(ctx, alpha, () => paint(ctx)); return; }
+  if (scratch.width !== cv.width || scratch.height !== cv.height) { scratch.width = cv.width; scratch.height = cv.height; }
+  s.setTransform(1, 0, 0, 1, 0, 0);
+  s.clearRect(0, 0, scratch.width, scratch.height);
+  s.setTransform(ctx.getTransform());
+  paint(s);
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha *= alpha;
+  ctx.drawImage(scratch, 0, 0);
+  ctx.restore();
+}
+
+// Âncora de um item de chão no ladrilho (c, r): centro + offset do tipo (DECOR_ITEMS).
+export function anchorOf(type, c, r) {
+  const d = ITEM.get(type);
+  const o = (d && d.offset) || [0, 0];
+  return { gx: c + 0.5 + o[0], gy: r + 0.5 + o[1] };
+}
+
+const bandOf = (type) => (ITEM.get(type) && ITEM.get(type).band) || 'mid';
+
+// Centro do espaço de parede, em x do plano local da parede.
+// WALL_SLOTS[band].at[side][pos] (em ladrilhos) substitui a regra do span.
+function slotX(side, band, pos) {
+  const sl = WALL_SLOTS[band] || WALL_SLOTS.mid;
+  const at = sl.at && sl.at[side] && sl.at[side][pos];
+  const u = (at != null ? at : (pos + 0.5) * sl.span) * 30;
+  return side === 'left' ? -u : u;
+}
+// Retângulo de destaque do espaço (plano local): [x, y, w, h].
+const SLOT_H = { high: [-123, -103], mid: [-103, -43] };
+function slotRect(side, band, pos) {
+  const span = (WALL_SLOTS[band] || WALL_SLOTS.mid).span * 30;
+  const inset = band === 'high' ? 4 : 2;
+  const cx = slotX(side, band, pos);
+  const [y0, y1] = SLOT_H[band] || SLOT_H.mid;
+  return [cx - span / 2 + inset, y0, span - inset * 2, y1 - y0];
+}
+
+// Layout inicial no formato de decor.sceneLayout(), a partir de INITIAL_DECOR (data.js).
+let initial = null;
+export function initialLayout() {
+  if (!initial) {
+    initial = {
+      floor: INITIAL_DECOR.items.map((it) => ({ ...it, ...anchorOf(it.type, it.c, it.r) })),
+      wall: INITIAL_DECOR.wallItems.map((it) => ({ ...it, band: it.band || bandOf(it.type) })),
+    };
+  }
+  return initial;
+}
+
+// ---------- Miniaturas da loja ----------
+// Convenção de DPR: o chamador cria o canvas com size × dpr px, aplica ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+// e passa size em px CSS. As funções não limpam o canvas e restauram o estado do contexto.
+
+// Enquadramento por tipo: [cx, cy, lado] em coordenadas da cena, relativos à âncora do item (0, 0).
+// Os seis do mockup vêm dos viewBox de 03-decorar.html (âncora em (0, 15)); o tapete do mockup usa
+// escala 0,35, então o lado é 54 / 0,35. Os demais seguem a regra do mockup: centro na caixa do desenho,
+// lado ≈ max(altura × 1,03, largura × 1,55) (parede: folga de ~15%).
+// Itens de parede: no plano local da parede, já com THUMB_SKEW aplicado.
+const THUMB_VIEW = {
+  plant: [0, -18, 48],
+  monstera: [0, -31, 68],
+  armchair: [0, -21, 62],
+  floorLamp: [0, -41, 92],
+  rug: [0, 0, 154],
+  catBed: [0, -5, 54],
+  pouf: [0, -6, 40],
+  flowerTable: [0, -22, 56],
+  recordPlayer: [0, -12, 48],
+  table: [0, -12, 85],
+  bookshelf: [0, -36, 100],
+  bunting: [0, -116, 100],
+  stringLights: [0, -117, 106],
+  frame: [0, -86, 40],
+  hangingPlant: [0, -83, 53],
+  clock: [0, -98, 32],
+  cupShelf: [0, -78, 45],
+};
+const THUMB_SKEW = 0.25; // parede vista levemente de lado (a parede da sala usa 0,5)
+
+// Item centrado num quadrado size × size, com o mesmo desenho da sala (drawItem).
+// opts vai para drawItem ({ time, now, music, variant }); sem opts, o quadro é a paisagem e o relógio marca 3:00.
+export function drawItemThumb(ctx, type, size, opts = {}) {
+  const def = ITEM.get(type);
+  const view = THUMB_VIEW[type];
+  if (!def || !view) return;
+  const [cx, cy, side] = view;
+  const k = size / side;
+  ctx.save();
+  ctx.translate(size / 2, size / 2);
+  ctx.scale(k, k);
+  if (def.where === 'wall') ctx.transform(1, THUMB_SKEW, 0, 1, 0, 0);
+  ctx.translate(-cx, -cy);
+  drawItem(ctx, type, 0, 0, opts);
+  ctx.restore();
+}
+
+// Canto de parede (2 ladrilhos de cada lado, altura cheia) com listras, lambri e rodapé.
+// wallColor = id ou objeto de WALL_COLORS.
+const WALL_THUMB_LEN = 60;
+export function drawWallThumb(ctx, wallColor, size) {
+  const c = typeof wallColor === 'string' || !wallColor ? findById(WALL_COLORS, wallColor, DEFAULT_WALL) : wallColor;
+  const k = size / 160;
+  ctx.save();
+  ctx.translate(size / 2, size / 2);
+  ctx.scale(k, k);
+  ctx.translate(0, 47);
+  wall(ctx, 'left', { ...WALL_LEFT, ...c.left }, { length: WALL_THUMB_LEN });
+  wall(ctx, 'right', { ...WALL_RIGHT, ...c.right }, { length: WALL_THUMB_LEN });
+  ctx.restore();
+}
+
+// Losango de piso (2 × 2 ladrilhos, com as bordas). floor = id ou objeto de FLOORS.
+export function drawFloorThumb(ctx, floor, size) {
+  const f0 = typeof floor === 'string' || !floor ? findById(FLOORS, floor, DEFAULT_FLOOR) : floor;
+  const k = size / 132;
+  ctx.save();
+  ctx.translate(size / 2, size / 2);
+  ctx.scale(k, k);
+  ctx.translate(0, -35);
+  paintFloor(ctx, f0, 2);
+  ctx.restore();
+}
+
+// ---------- Composição ----------
+
+// Fixos (não são itens): balcão com máquina, redoma e potes; luminárias pendentes sobre o balcão
+// (profundidade logo após o balcão). A barista vem como entidade da simulação (arquitetura, seção 5).
+const FIXED = [
+  { gx: 2.25, gy: 1.3, paint: (ctx, x, y) => drawCounter(ctx, x, y) },
+  { gx: 1.5, gy: 1.3, h: 75, depth: 3.56, paint: (ctx, x, y, o) => drawPendantLamp(ctx, x, y, o.time) },
+  { gx: 2.9, gy: 1.3, h: 75, depth: 3.57, paint: (ctx, x, y, o) => drawPendantLamp(ctx, x, y, o.time) },
 ];
 
-const SORTED_LAYOUT = sortByDepth(INITIAL_LAYOUT);
+// Ajuste de profundidade por tipo: a estante é longa em gy (1,2 ladrilho) e fina em gx;
+// ordenar pelo canto do fundo a mantém atrás do que está à frente dela.
+const DEPTH_BIAS = { bookshelf: -0.81 };
+const depthFor = (type, gx, gy) => (DEPTH_BIAS[type] ? gx + gy + DEPTH_BIAS[type] : undefined);
+
+// Peças de chão ordenáveis de um layout. A mesa vira 3 peças (banquinho, mesa, banquinho)
+// para os sentados ficarem na ordem certa. Memoizado por objeto de layout.
+const piecesCache = new WeakMap();
+const paintStool = (ctx, x, y) => drawStool(ctx, x, y);
+const paintTable = (ctx, x, y) => drawTable(ctx, x, y);
+function floorPieces(layout) {
+  let cached = piecesCache.get(layout);
+  if (cached) return cached;
+  const rugs = [], pieces = [];
+  for (const it of layout.floor || []) {
+    const fn = FLOOR_DRAW[it.type];
+    if (!fn) continue;
+    const { gx, gy } = it.gx != null ? it : anchorOf(it.type, it.c, it.r);
+    if (it.type === 'rug') rugs.push(project(gx, gy));
+    else if (it.type === 'table') {
+      pieces.push({ gx: gx - STOOL_DX, gy, paint: paintStool });
+      pieces.push({ gx, gy, paint: paintTable });
+      pieces.push({ gx: gx + STOOL_DX, gy, paint: paintStool });
+    } else pieces.push({ gx, gy, depth: depthFor(it.type, gx, gy), paint: fn });
+  }
+  cached = { rugs, pieces: FIXED.concat(pieces) };
+  piecesCache.set(layout, cached);
+  return cached;
+}
+
+// Lugar em placing.free / chosen: [c, r], { c, r } ou { wall, pos }.
+const spotC = (s) => (Array.isArray(s) ? s[0] : s.c);
+const spotR = (s) => (Array.isArray(s) ? s[1] : s.r);
+function sameSpot(a, b) {
+  if (!a || !b) return false;
+  if (a.wall != null || b.wall != null) return a.wall === b.wall && a.pos === b.pos;
+  return spotC(a) === spotC(b) && spotR(a) === spotR(b);
+}
+
+const FREE_FILL = '#fff6e6', CHOSEN_FILL = '#7ed58a', CHOSEN_STROKE = '#3f9d55';
+
+// Losango pequeno (0,22 do ladrilho, como no mockup) no centro de cada ladrilho livre;
+// o escolhido é o ladrilho inteiro em verde com contorno.
+function drawFloorSpots(ctx, placing) {
+  for (const s of placing.free || []) {
+    if (sameSpot(s, placing.chosen)) continue;
+    const p = project(spotC(s) + 0.5, spotR(s) + 0.5);
+    withAlpha(ctx, 0.55, () => poly(ctx, [p.x + 6.6, p.y, p.x, p.y + 3.3, p.x - 6.6, p.y, p.x, p.y - 3.3], FREE_FILL));
+  }
+  const ch = placing.chosen;
+  if (!ch) return;
+  withAlpha(ctx, 0.75, () => tile(ctx, spotC(ch), spotR(ch), CHOSEN_FILL));
+  tile(ctx, spotC(ch), spotR(ch), null, CHOSEN_STROKE);
+}
+
+// Destaques da parede (retângulo no plano da parede) e item fantasma no escolhido.
+function drawWallSpots(ctx, placing, opts) {
+  const band = bandOf(placing.type);
+  for (const side of ['left', 'right']) {
+    ctx.save();
+    wallTransform(ctx, side);
+    for (const s of placing.free || []) {
+      if (s.wall !== side || sameSpot(s, placing.chosen)) continue;
+      const [x, y, w, h] = slotRect(side, band, s.pos);
+      roundRect(ctx, x, y, w, h, 3, FREE_FILL, 0.55);
+    }
+    const ch = placing.chosen;
+    if (ch && ch.wall === side) {
+      const [x, y, w, h] = slotRect(side, band, ch.pos);
+      roundRect(ctx, x, y, w, h, 3, CHOSEN_FILL, 0.75);
+      roundRectPath(ctx, x, y, w, h, 3);
+      ctx.strokeStyle = CHOSEN_STROKE;
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+      drawItem(ctx, placing.type, slotX(side, band, ch.pos), 0, { ...opts, alpha: 0.5 });
+    }
+    ctx.restore();
+  }
+}
+
+// Quadros sem variant alternam paisagem e quadrinho azul pela ordem no layout (decisão 27).
+const FRAME_VARIANTS = [null, 'small'];
+function drawWallItems(ctx, items, opts) {
+  for (const side of ['left', 'right']) {
+    ctx.save();
+    wallTransform(ctx, side);
+    let frames = 0;
+    for (const it of items) {
+      const fn = WALL_DRAW[it.type];
+      if (!fn) continue;
+      const variant = it.type === 'frame' ? it.variant || FRAME_VARIANTS[frames++ % FRAME_VARIANTS.length] : null;
+      if (it.wall === side) fn(ctx, slotX(side, it.band || bandOf(it.type), it.pos), 0, variant ? { ...opts, variant } : opts);
+    }
+    ctx.restore();
+  }
+}
 
 // Centro da cabeça de uma entidade, a partir do y de project(gx, gy).
 function headY(e, y) {
@@ -635,21 +1023,41 @@ function headY(e, y) {
 }
 
 // Desenha a sala inteira em coordenadas do viewBox. O chamador já aplicou escala, DPR e translação.
-// entities: lista de sim.entities() (arquitetura, seção 5). Móveis e personagens na mesma ordem de profundidade;
-// balões e corações por último, fora dessa ordem.
-export function drawScene(ctx, { time = 0, entities = [] } = {}) {
+// layout = decor.sceneLayout() (sem layout: INITIAL_DECOR). wall/floor = objetos de WALL_COLORS/FLOORS (ou ids).
+// placing = { type, free, chosen } (arquitetura, M3.5). now = { h, m } para o relógio; music liga as notas da vitrola.
+// Ordem: piso, paredes e itens de parede (com destaques), luz da janela, capacho, tapetes, destaques do chão;
+// depois móveis e personagens numa só lista por profundidade; balões e corações por último.
+export function drawScene(ctx, { time = 0, entities = [], layout, wall, floor, placing, now = null, music = false } = {}) {
+  const lay = layout || initialLayout();
+  const wallColors = typeof wall === 'string' || !wall ? findById(WALL_COLORS, wall, DEFAULT_WALL) : wall;
+  const opts = { time, now, music };
+  const { rugs, pieces } = floorPieces(lay);
+  const def = placing && placing.type ? ITEM.get(placing.type) : null;
+  const onWall = !!def && def.where === 'wall';
   ctx.save();
-  drawFloor(ctx);
-  drawLeftWall(ctx);
-  drawRightWall(ctx, time);
+  drawFloor(ctx, floor);
+  drawLeftWall(ctx, wallColors);
+  drawRightWall(ctx, time, wallColors);
+  drawWallItems(ctx, lay.wall || [], opts);
+  if (onWall) drawWallSpots(ctx, placing, opts);
   drawWindowLight(ctx);
   drawDoorMat(ctx, 0.12, 4.35);
-  const rug = project(3.7, 3.8);
-  drawRoundRug(ctx, rug.x, rug.y);
-  const items = entities.length ? sortByDepth(SORTED_LAYOUT.concat(entities)) : SORTED_LAYOUT;
+  for (const p of rugs) drawRoundRug(ctx, p.x, p.y);
+  let list = pieces;
+  if (def && !onWall) {
+    drawFloorSpots(ctx, placing);
+    const ch = placing.chosen;
+    if (ch) {
+      const a = anchorOf(placing.type, spotC(ch), spotR(ch));
+      const ghost = (c, x, y) => drawItem(c, placing.type, x, y, { ...opts, alpha: 0.5 });
+      if (placing.type === 'rug') { const p = project(a.gx, a.gy); ghost(ctx, p.x, p.y); }
+      else list = list.concat({ gx: a.gx, gy: a.gy, depth: depthFor(placing.type, a.gx, a.gy), paint: ghost });
+    }
+  }
+  const items = sortByDepth(entities.length ? list.concat(entities) : list);
   for (const it of items) {
     const p = project(it.gx, it.gy, it.h || 0);
-    if (it.draw) it.draw(ctx, p.x, p.y, time);
+    if (it.paint) it.paint(ctx, p.x, p.y, opts);
     else drawCharacter(ctx, it.look, p.x, p.y, { pose: it.pose, dir: it.dir, walk: it.walk, time, cup: it.cup });
   }
   for (const e of entities) {

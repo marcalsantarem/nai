@@ -11,7 +11,7 @@ Contratos entre AG01 (`data`, `state`, `sim`), AG02 (telas, `icons`) e AG03 (`ar
 | `js/sim.js` | AG01 | `data`, `state` (injetável) | Não toca no DOM, não desenha, não usa `Math.random` nem relógio direto: só `update(dt)` e o `rng` recebido. Roda em Node para testes |
 | `js/iso.js` | AG03 | nada | Projeção e formas |
 | `js/icons.js` | AG02 | nada | Ícones para HTML e canvas |
-| `js/art.js` | AG03 | `iso`, `icons` | Só desenha o que recebe; nunca importa `data`, `state` nem `sim`, nunca altera estado |
+| `js/art.js` | AG03 | `iso`, `icons`, constantes de `data` | Só desenha o que recebe; lê só constantes de `data` (ex.: `INITIAL_DECOR`, cores); nunca importa `state`, `sim` nem `decor`, nunca altera estado |
 | `js/screens/*.js` | AG02 | `data` (leitura), `state`, `art`, `iso`, `icons` | Recebem `sim` pelo contexto (seção 7); não alteram o estado direto, só pela `sim` |
 | `js/main.js` | compartilhado | telas, `state`, `sim` | Cria a `sim`, roda `sim.update(dt)` em todo quadro (qualquer tela aberta) e troca telas |
 
@@ -159,5 +159,127 @@ BARISTA_LOOK = { skin, hair, shirt: MINT, pants, hairStyle: 'curly', apron: true
 3. Barra com 6: “O Mocha chega em breve”; nível sobe desde o M2 (decisão 23).
 4. Voltar do Preparo guarda os passos (decisão 24).
 5. Marcos de receita: 6, 10, 14, 24 (decisão 25).
-6. [A definir] no M3: ladrilho de cada móvel de `INITIAL_LAYOUT` ao virar item salvo.
-7. [A definir] no M3: o ladrilho (1,2), onde fica o 2º da fila desde a T-053, deve entrar em `reservedTiles`.
+6. Ladrilho de cada móvel do layout inicial: seção M3.1.
+7. O ladrilho (1,2), do 2º da fila desde a T-053, entra em `reservedTiles` (seção M3.2).
+
+# M3 — Decoração
+
+Acrescenta à arquitetura do M2. Mesma convenção: **[Proposta]** é ajustável por quem implementa sem mudar a interface; **[A definir]** precisa do dono ou do AG00.
+
+## M3.1 Layout como estado
+
+A sala deixa de ser fixa: `state` guarda os campos salvos da especificação.
+
+```js
+items:     [ { type: 'table', c: 3, r: 3 } ]              // chão: tipo + ladrilho
+wallItems: [ { type: 'frame', wall: 'left', pos: 3 } ]    // parede: tipo + parede ('left' | 'right') + posição
+stock:     { plant: 1 }                                   // guardados, por tipo (0 = ausente)
+wall: 'sage', floor: 'checker'                            // ids de WALL_COLORS e FLOORS (data.js)
+```
+
+- **Âncora:** item de chão é desenhado no centro do ladrilho mais o `offset` do tipo em `DECOR_ITEMS` (|d| ≤ 0,3; [Proposta], para o layout inicial ficar igual ao mockup). `decor.sceneLayout()` já devolve `gx, gy` resolvidos; `art` não calcula posição.
+- **Fixos (não são itens, não se movem):** balcão com máquina, redoma e potes, luminárias pendentes, barista, porta e capacho, quadro-negro, janela com cortinas e luz no chão. Ficam em `art.js`.
+- **Layout inicial (`INITIAL_DECOR` em `data.js`):**
+
+| Item | Onde | Posição | Desenho resultante (M2) |
+|---|---|---|---|
+| Estante (`bookshelf`) | chão | (0,2), offset (−0,24, −0,4) | (0,26, 2,1) igual |
+| Planta (`plant`) | chão | (0,3) | (0,5, 3,5) igual |
+| Costela-de-adão (`monstera`) | chão | (5,0), offset (−0,1, 0,05) | (5,4, 0,55) igual |
+| Mesa com banquinhos (`table`) | chão | (3,3), offset (0,2, 0,3) | (3,7, 3,8) igual; banquinhos iguais a `ROOM.seats` |
+| Tapete (`rug`) | chão, por baixo | (3,3), offset (0,2, 0,3) | (3,7, 3,8) igual |
+| Luminária (`floorLamp`) | chão | (5,3), offset (0, −0,3) | (5,5, 3,2) igual |
+| Poltrona (`armchair`) | chão | (4,4), offset (0,3, 0,3) | (4,8, 4,8); era (5, 5) |
+| Caminha (`catBed`) | chão | (1,5), offset (0, −0,3) | (1,5, 5,2); era (1,5, 5) |
+| Bandeirinhas (`bunting`) ×2 | parede esquerda, faixa alta | pos 0 e 1 | cada uma é uma das 2 curvas de hoje |
+| Luzinhas (`stringLights`) | parede direita, faixa alta | pos 0 | igual (sobre o quadro-negro) |
+| Quadro (`frame`) | parede esquerda, faixa média | pos 3 | igual |
+| Relógio (`clock`) | parede esquerda, faixa média | pos 2 | centro em gy 2,5; era 2,1 |
+
+- `drawSmallFrame` (quadrinho azul ao lado do quadro): **[A definir]**, sem tipo na loja. Proposta: sai da cena (o relógio passa a ocupar o lugar).
+- `stock` começa vazio; `wall: 'sage'`, `floor: 'checker'` (as cores atuais).
+- Nomes em `data.js` (T-024): `DECOR_ITEMS`, `SHOP_TABS`, `TABLE_SEATS`, `TABLE_COLUMNS`, `WALL_SLOTS`, `WALL_COLORS`, `FLOORS`, `DEFAULT_WALL`, `DEFAULT_FLOOR`, `INITIAL_DECOR`, `SAVE_VERSION`.
+
+## M3.2 Ocupação
+
+- **Chão:** 1 item por ladrilho. Tapete fica numa camada por baixo: no máximo 1 tapete por ladrilho, e não bloqueia nem é bloqueado por outros itens.
+- **Reservados (`ROOM.reservedTiles`, nenhum item, nem tapete):** balcão c 0–3, r 0–1; porta (0,4), (0,5); corredor (1,2), (1,3), (1,4), (2,2), (2,3), (2,4), (3,2) — fila Q1–Q3, `ENTRY`, `EXIT`, `HUB`. Sobram 19 ladrilhos livres na sala vazia.
+- **Mesa:** ocupa 1 ladrilho (especificação); os banquinhos ficam a ±0,65 em gx da âncora e não ocupam ladrilho. **[Proposta]** mesa só em c 1–4 (os banquinhos ficam dentro da sala) e nunca em (c±1, r) de outra mesa (banquinhos sobrepostos). **[A definir]** se os ladrilhos dos banquinhos devem bloquear outros itens (hoje: não; pode haver sobreposição visual).
+- **Limite:** `limit: 1` (caminha) conta itens colocados + estoque. A caminha do layout inicial conta.
+- **Parede (`WALL_SLOTS`) [Proposta]:** duas faixas por parede; a faixa vem do tipo (`band` em `DECOR_ITEMS`).
+  - Faixa alta (bandeirinhas, luzinhas): 2 posições por parede, cada uma com 3 ladrilhos de largura (pos 0 = 0–3, pos 1 = 3–6, ao longo de gy na esquerda e de gx na direita). Nada reservado.
+  - Faixa média (quadro, relógio, planta pendente, prateleira): 6 posições por parede, 1 ladrilho cada (centro em pos + 0,5). Reservadas: esquerda 4 e 5 (porta); direita 0–5 (quadro-negro em gx 0,6–2,8 e janela em 3,3–5,9 cobrem tudo).
+  - Resultado: 4 espaços altos e 4 médios. No início, 3 altos e 2 médios ocupados. **[A definir]** se são poucos espaços de parede.
+
+## M3.3 API das regras: `js/decor.js` (novo, AG01)
+
+Módulo novo e não `state.js`: as regras ficam testáveis no Node, e o `state.js` (compartilhado) só guarda campos e salva. `decor` importa `data` e `state` (injetável: `createDecor({ store })`, como a `sim`).
+
+`state` ganha: `spend(n)` → `true` | `false` (sem moedas, não altera); `setDecor(patch)` com `{ items, wallItems, stock, wall, floor }`; `load()`, `save()`. Evento `{ type: 'decor', change }` em toda mudança da decoração.
+
+| Chamada | Devolve | Efeito / evento |
+|---|---|---|
+| `shopState(type)` | `'price' \| 'placing' \| 'stock' \| 'disabled'`, com `n` do estoque | Estado do botão (seção M3.7) |
+| `buy(type)` | `{ ok, reason? }`, `reason` em `'coins' \| 'limit'` | `spend(price)`, `stock[type] += 1`, depois `startPlacing(type)`. Eventos `coins` e `decor` (`change: 'buy'`) |
+| `startPlacing(type)` | `{ ok, free }` | Tira 1 do estoque “na mão” (só em memória) e abre a colocação. `free` vazio = sem lugar (o item continua no estoque) |
+| `freeSpots(type)` | `[[c, r], …]` ou `[{ wall, pos }, …]` | Pura. Respeita reservados, ocupação, tapete, mesa e faixa |
+| `choose(spot)` | `{ ok }` | Marca o lugar escolhido (verde + transparência). Sem evento de estado |
+| `place(spot)` | `{ ok }` | Coloca o item da mão; sai do estoque de vez. `decor` (`'place'`) |
+| `pickUp(ref)` | `{ ok, type }` | `ref` = `{ c, r }` (item comum antes do tapete) ou `{ wall, pos, band }`. Esconde o item da cena; o salvo não muda até `place` ou `store` |
+| `store()` | `{ ok }` | Item da mão vai para o estoque. `decor` (`'store'`) |
+| `cancel()` | — | Movendo: volta à origem. Comprado ou do estoque: fica no estoque |
+| `setWall(id)`, `setFloor(id)` | `{ ok }` | Grátis. `decor` (`'wall'` / `'floor'`) |
+| `getPlacing()` | `{ type, from: 'shop' \| 'stock' \| 'move', origin, chosen, free } \| null` | Para a tela e para `drawScene` |
+| `sceneLayout()` | `{ floor: [{ type, c, r, gx, gy }], wall: [{ type, wall, pos, band }] }` | Sem o item da mão |
+
+- A compra já guarda o item no estoque: fechar o app no meio da colocação não perde moedas.
+- Nada falha: chamada inválida devolve `{ ok: false }` e não altera nada.
+
+## M3.4 Efeito na simulação
+
+- **Lugares:** `sim` deixa de ler `ROOM.seats` (T-025). Para cada item com `seats: 2`, 2 lugares em âncora + `TABLE_SEATS` (`dx −0,65`, virado para `+gx`; `dx +0,65`, virado para `−gx`), com id `'c,r:i'`. Recalcula no evento `decor`. `ROOM.seats` fica em `data.js` até a T-025 e depois sai.
+- **Móvel com lugar levantado ou guardado [Proposta]:** quem está sentado levanta, solta o coração e sai; quem anda até o lugar troca para outro livre ou sai com o copo. As moedas já entraram; nada é devolvido nem cobrado.
+- **Caminhos (T-055):** os pontos de passagem não mudam; cada trecho entre eles (`HUB → banquinho`, `banquinho → HUB`, `HUB → EXIT`…) vira uma rota que desvia dos móveis. Bloqueiam o ladrilho de cada item de chão (tapete não) e, na mesa, os ladrilhos dos 2 banquinhos; origem e destino do trecho são livres. A fila e o corredor são reservados e nunca bloqueiam.
+- Rota (`findRoute` em `sim.js`): reta se livre; senão Dijkstra 8-vizinhos na grade 6 × 6 (diagonal só com os dois vizinhos livres) e corte de cantos por visibilidade. Sem rota (sala cheia), anda em reta como no M2. Mesma velocidade.
+- Móvel colocado, movido ou levantado (`sceneLayout`): quem está andando recalcula a rota do trecho atual.
+- **Gato:** existe só com a caminha colocada (entidade `kind: 'cat'` no M4, ou desenhado pela caminha no M3). Caminha guardada: o gato some. Passeio até ladrilho livre usa `freeSpots`.
+- **Regáveis** (`waterable`): a sede é por item colocado, só em memória (M4).
+
+## M3.5 Contrato com a arte
+
+```js
+drawScene(ctx, { time, entities, layout, wall, floor, placing, now, music })
+```
+
+- `layout` = `decor.sceneLayout()`. Sem `layout`, `art` usa o inicial (a cena fica como hoje). Fixos continuam em `art`.
+- `wall` = objeto de `WALL_COLORS` (`left`/`right` com `base` e `stripe`); `floor` = objeto de `FLOORS` (`pattern`, `a`, `b`, `grout`). Lambri, rodapé e bordas do piso não mudam [Proposta].
+- `placing` = `{ type, free, chosen }`: losango claro `#fff6e6` a 55% em cada lugar livre; escolhido em `#7ed58a` a 75% com contorno `#3f9d55` e o móvel a ~50% de opacidade em cima (mockup). Na parede, o destaque é um retângulo no plano da parede.
+- `now = { h, m }` para o relógio (a hora real vem da tela, `art` não lê o relógio). `music` liga as notas da vitrola. Luminária brilha e luzinhas piscam com `time`.
+- Um desenho por tipo: `drawItem(ctx, type, x, y, { time, alpha })`, com a mesma âncora da cena.
+- Miniaturas: `drawItemThumb(ctx, type, size)`, centrado em um quadrado `size × size`, com as mesmas funções; cores: `drawWallThumb(ctx, wallColor, size)` e `drawFloorThumb(ctx, floor, size)`.
+- Toque na parede (inversa): esquerda `gy = −vx / 30`, `h = gy × 15 − vy`; direita `gx = vx / 30`, `h = gx × 15 − vy`. Faixa alta `h ≥ 104`, média `40 ≤ h < 104` [Proposta].
+
+## M3.6 Salvamento (`state.load` / `state.save`)
+
+- Chave `nais-cafe-v1`, JSON: `{ v: 1, coins, served, count, name, wall, floor, items, wallItems, stock, regulars, settings }`. `v` é a versão do formato [Proposta]; `name` = “Nai's Cafe”; `regulars: {}` e `settings: { music: true, rain: true }` só são usados no M4/M5.
+- `load()` na abertura: sem chave, JSON inválido ou `localStorage` indisponível → estado inicial (`INITIAL_DECOR`, 40 moedas). Campo por campo: inválido usa o padrão; item com tipo desconhecido é descartado; item fora da grade, em reservado ou repetido vai para o estoque.
+- `save()` em todo evento de `state` (moedas, servidas, contagem, decoração), dentro de `try/catch`; falha é ignorada e o jogo segue.
+- **Não salvo:** clientes, fila, pedido aberto, sede das plantas, posição do gato, item na mão e lugar escolhido.
+
+## M3.7 Fluxo da tela Decorar
+
+- **Navegando:** legenda “Toque em um móvel para mudar de lugar”. Toque em móvel → `pickUp` → *movendo*. Toque em cartão → *colocando*.
+- **Colocando** (da loja ou do estoque): pílula “Escolha um lugar livre para a planta” (`article` + `short` em minúsculas). 1º toque num lugar livre → `choose`; toque no mesmo lugar → `place` → *navegando*. Toque fora dos livres não faz nada. Sem lugar livre: pílula “Não há lugar livre agora” e o item fica no estoque [Proposta].
+- **Movendo:** igual a colocando, com o botão “Guardar” (`store`). Tocar na origem devolve o item.
+- **Botões da loja:** `price` (amarelo) → `buy`; `placing` (“Colocando”, verde) → sem ação; `stock` (“Colocar · N”, menta) → `startPlacing`; `disabled` sem moedas ou no limite. Com estoque, o cartão mostra “Colocar · N” em vez do preço.
+- Abas: Salão (`tab: 'salao'`, chão), Paredes (`'paredes'`), Cores (5 paredes + 3 pisos, aplicação imediata, ativo em amarelo).
+- Sair da tela ou trocar de cartão no meio: `cancel()`. A `sim` continua rodando.
+
+## M3.8 Pontos resolvidos
+
+1. Colocar com dois toques (decisão 26).
+2. Quadrinho azul = 2º “Quadro” no layout inicial (decisão 27).
+3. Ladrilhos dos banquinhos bloqueados (decisão 28).
+4. Sala começa sem a caminha; o gato vem com a compra (decisão 29). `INITIAL_DECOR` deve ser ajustado na T-025.
+5. 4 espaços altos e 4 médios na parede esquerda (decisão 30).
+6. Nome editável em Ajustes (decisão 16), edição no M4.

@@ -35,7 +35,7 @@ Dependências: T-002 antes de T-005/T-006/T-007 · T-004 antes de T-007 · T-005
 | T-020 | Tela Preparo (`js/screens/preparo.js`) igual ao mockup: topo, passos, palco com a xícara e camadas animadas (~0,8 s), dica, grade 2 × 4 com o próximo em destaque, erro sem punição (balança e repete a dica), desenho na espuma (coração, flor, estrela), “Entregar”, voltar sem perder o cliente | G | AG02 (UI) | feita (BRF-018) |
 | T-021 | Validação do M2: 4 receitas iniciais preparáveis, 20 clientes seguidos sem travar e sem forma de perder, telas Cafeteria e Preparo contra o mockup | M | AG06 (QA) | feita (BRF-019): passa com ressalvas, ver docs/qa/qa-M2.md |
 | T-053 | QA D1/D2: reposicionar a fila para não se sobrepor a quem senta no banquinho 1 | P | AG03 (Arte) | feita (BRF-020) |
-| T-022 | Fechamento do M2: versão 0.2.0, PR `dev` → `main`, tag v0.2.0 | P | AG00 | em andamento (versão 0.2.0 na dev; aguarda PR e tag) |
+| T-022 | Fechamento do M2: versão 0.2.0, PR `dev` → `main`, tag v0.2.0 | P | AG00 | feita (PR #2, tag v0.2.0) |
 
 Ordem: T-014 → (T-015 ∥ T-016) → (T-017 ∥ T-018) → T-019 → T-020 → T-021 → T-022. T-019 e T-020 são do mesmo agente e mexem em `css/ui.css`, então rodam em série.
 
@@ -45,16 +45,18 @@ Fora do M2 (ficam para o M3/M4): salvar progresso, liberar Mocha, Chocolate quen
 
 | ID | Título | Tam. | Dono | Estado |
 |---|---|---|---|---|
-| T-023 | Contratos da decoração em `docs/arquitetura.md`: ocupação da grade, itens de chão e de parede, áreas reservadas, estoque, formato salvo | P | AG01 (Gameplay) | a fazer |
-| T-024 | `js/data.js`: 17 itens (onde, preço, observações), 5 cores de parede e 3 pisos | P | AG01 (Gameplay) | a fazer |
-| T-025 | Regras: comprar, colocar, mover, guardar no estoque, ocupação (tapete por baixo, 1 espaço de parede), reservados, limite da caminha, mesa nova = +2 lugares na simulação | M | AG01 (Gameplay) | a fazer |
-| T-026 | Salvamento em `localStorage` (`nais-cafe-v1`): moedas, servidas, contagem, parede, piso, itens, estoque; tolerante a falha | M | AG01 (Gameplay) | a fazer |
-| T-027 | Arte dos 17 itens em `js/art.js`; a sala passa a ser montada a partir do estado (não fixa); 5 cores de parede e 3 pisos | G | AG03 (Arte) | a fazer |
-| T-028 | Miniaturas da loja com as mesmas funções de desenho | M | AG03 (Arte) | a fazer |
-| T-029 | Tela Decorar: cena reduzida, losangos nos ladrilhos livres, escolhido em verde com o móvel transparente, pílula de instrução, tocar em móvel para mover, “Guardar” | G | AG02 (UI) | a fazer |
-| T-030 | Loja: abas Salão, Paredes e Cores, grade de 3 colunas, estados do botão (preço, “Colocando”, “Colocar · N”, desativado) | G | AG02 (UI) | a fazer |
-| T-031 | Validação do M3: 17 itens comprados, colocados, movidos e guardados; fechar e reabrir mantém tudo | M | AG06 (QA) | a fazer |
-| T-032 | Fechamento do M3: versão 0.3.0, PR, tag v0.3.0 | P | AG00 | a fazer |
+| T-023 | Contratos da decoração em `docs/arquitetura.md`: ocupação da grade, itens de chão e de parede, áreas reservadas, estoque, formato salvo | P | AG01 (Gameplay) | feita (BRF-021) |
+| T-024 | `js/data.js`: 17 itens (onde, preço, observações), 5 cores de parede e 3 pisos | P | AG01 (Gameplay) | feita (BRF-022) |
+| T-025 | Regras: comprar, colocar, mover, guardar no estoque, ocupação (tapete por baixo, 1 espaço de parede), reservados, limite da caminha, mesa nova = +2 lugares na simulação; ajustar `INITIAL_DECOR` às decisões 27 e 29 (2º Quadro, sem caminha) | M | AG01 (Gameplay) | feita (BRF-023) |
+| T-026 | Salvamento em `localStorage` (`nais-cafe-v1`): moedas, servidas, contagem, parede, piso, itens, estoque; tolerante a falha; Quadro com `variant` salvo (o 2º é `'small'`) | M | AG01 (Gameplay) | feita (BRF-026) |
+| T-027 | Arte dos 17 itens em `js/art.js`; a sala passa a ser montada a partir do estado (não fixa); 5 cores de parede e 3 pisos | G | AG03 (Arte) | feita (BRF-024) |
+| T-054 | Abrir espaços de parede na parede direita (decisão 30) | P | AG03 (Arte) | feita (BRF-025): 1 espaço médio novo |
+| T-028 | Miniaturas da loja com as mesmas funções de desenho | M | AG03 (Arte) | feita (BRF-027) |
+| T-029 | Tela Decorar: cena reduzida, losangos nos ladrilhos livres, escolhido em verde com o móvel transparente, pílula de instrução, tocar em móvel para mover, “Guardar” | G | AG02 (UI) | feita (BRF-028) |
+| T-030 | Loja: abas Salão, Paredes e Cores, grade de 3 colunas, estados do botão (preço, “Colocando”, “Colocar · N”, desativado) | G | AG02 (UI) | feita (BRF-029) |
+| T-031 | Validação do M3: 17 itens comprados, colocados, movidos e guardados; fechar e reabrir mantém tudo | M | AG06 (QA) | feita (BRF-030): passa com ressalvas, ver docs/qa/qa-M3.md |
+| T-055 | QA do M3: clientes desviam dos móveis (D3) e tipos do salvo validados (D1) | M | AG01 (Gameplay) | feita (BRF-031) |
+| T-032 | Fechamento do M3: versão 0.3.0, PR, tag v0.3.0 | P | AG00 | em andamento (versão 0.3.0 na dev; aguarda PR e tag) |
 
 Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 → T-030 → T-031 → T-032.
 
@@ -73,6 +75,7 @@ Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 →
 | T-041 | Tela Cardápio: receitas com preço e passos; bloqueadas tracejadas com “Libera com N bebidas” | M | AG02 (UI) | a fazer |
 | T-042 | Ajustes: painel deslizante, música e chuva, nome da cafeteria editável (decisão 16), “Recomeçar do zero” em dois toques | M | AG02 (UI) | a fazer |
 | T-043 | Validação do M4: 8 receitas liberam nos marcos, clientes da casa, rituais, áudio e telas novas | M | AG06 (QA) | a fazer |
+| T-056 | Resto do D1 (tipos sem protótipo em `decor.js` e `regulars`) e impedir mesa cujos lugares fiquem sem acesso | P | AG01 (Gameplay) | a fazer |
 | T-044 | Fechamento do M4: versão 0.4.0, PR, tag v0.4.0 | P | AG00 | a fazer |
 
 Ordem: (T-033 ∥ T-038) → (T-034 ∥ T-037) → (T-035 ∥ T-036) → T-039 → T-040 → T-041 → T-042 → T-043 → T-044.
@@ -84,7 +87,7 @@ Ordem: (T-033 ∥ T-038) → (T-034 ∥ T-037) → (T-035 ∥ T-036) → T-039 �
 | T-045 | Manifesto, metadados da Apple e ícones (192, 512 mascarável, 180) com “Nai's Cafe” | M | AG05 (Plataforma) | a fazer |
 | T-046 | Service worker: offline, rede primeiro na navegação, cache com a versão (decisão 11) | M | AG05 (Plataforma) | a fazer |
 | T-047 | Áreas seguras e gestos do sistema no app instalado; campos de texto com 16 px | P | AG02 (UI) | a fazer |
-| T-048 | Animações de toque e acabamento: botões, moedas, transições de tela | M | AG02 (UI) | a fazer |
+| T-048 | Animações de toque e acabamento: botões, moedas, transições de tela; mover as cores locais de `.prep` e `.decor` para `tokens.css` | M | AG02 (UI) | a fazer |
 | T-049 | Desempenho: 60 fps em iPhone de 2020 em diante com a sala cheia | M | AG03 (Arte) | a fazer |
 | T-050 | Teste no iPhone: instalado, tela cheia, modo avião, som depois de trocar de app, chave de silêncio | M | Dono + AG06 (QA) | a fazer |
 | T-051 | Validação final: todos os critérios de aceite da especificação | M | AG06 (QA) | a fazer |
