@@ -31,3 +31,5 @@ Repositório: https://github.com/marcalsantarem/nai
 - Antes do PR, suba a versão no arquivo de versão único (decisão 11) em um commit na `dev`.
 - Depois do merge: `git checkout main && git pull`, `git tag v0.x.0`, `git push origin v0.x.0`, volta para a `dev`.
 - Nunca mova, apague nem recrie uma tag.
+- Desde o M5 há service worker com cache por versão: todo push na `dev` que mude arquivos do jogo sobe o sufixo em `js/version.js` (ex.: `1.0.0-dev.3`), senão quem já abriu o jogo continua com os arquivos antigos. No fechamento do marco, a versão vira a final (ex.: `1.0.0`).
+- Ao criar um arquivo novo do jogo, acrescente-o à lista do `sw.js`.

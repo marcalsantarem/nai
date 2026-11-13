@@ -15,7 +15,7 @@ Ao mudar uma decisão, atualize esta tabela e, se for o caso, o `CLAUDE.md`.
 | 8 | Protótipo antigo | Decidido | Descartado; os ícones ficam em `icons/` (mesmo caminho previsto na especificação). O código continua no histórico do git | Dono, 2026-11-12 |
 | 9 | Deploy | Decidido | Já configurado no Netlify, sem build: push na `dev` atualiza https://dev--naicafe.netlify.app; merge de PR na `main` atualiza https://naicafe.netlify.app | Dono, 2026-11-12 |
 | 10 | Marcos | Proposta | Os marcos seguem as 5 etapas da especificação (ver [roadmap.md](roadmap.md)) | AG00 |
-| 11 | Arquivo de versão | Proposta | `js/version.js` é o único lugar da versão. No M5 o AG05 propõe virar script clássico (`self.VERSION`) lido pelo `sw.js` via `importScripts` | AG00, AG05 |
+| 11 | Arquivo de versão | Decidido | `js/version.js` (módulo ES) é o único lugar da versão. O `index.html` registra `sw.js?v=<VERSION>` e o `sw.js` lê `v` da própria URL para nomear o cache (`nais-cafe-<versão>`); caches antigos são apagados no `activate`. Trocar a versão a cada publicação | AG00, AG05 |
 | 12 | Time de agentes | Proposta | AG01–AG06, ver [00_biblia_projeto.md](00_biblia_projeto.md) | AG00 |
 | 13 | Bebidas favoritas da Nai | Decidido | Café com leite batido e cappuccino (já existe). “Café com leite batido” é a 8ª receita: Moer, Espresso, Espuma, Leite; 12 moedas; libera com 10 bebidas. O cardápio passa a ter 8 receitas (critério de aceite “7 receitas” vira 8) | Dono, 2026-11-12 |
 | 14 | Recadinhos do cliente especial | A definir | 4 a 8 frases; o dono escreve depois. Trava a T-035 | Dono, 2026-11-12 |

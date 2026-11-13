@@ -4,10 +4,27 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <title>Nai's Cafe</title>
+    <meta name="theme-color" content="#403f7a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Nai's Cafe">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="stylesheet" href="fonts/fonts.css">
     <link rel="stylesheet" href="css/tokens.css">
     <link rel="stylesheet" href="css/ui.css">
     <script type="module" src="js/main.js"></script>
+    <script type="module">
+      // Service worker (T-046): a versão no endereço dá nome ao cache. Se falhar, o jogo segue sem offline.
+      import { VERSION } from './js/version.js';
+      if ('serviceWorker' in navigator) {
+        addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js?v=' + encodeURIComponent(VERSION)).catch(() => {});
+        });
+      }
+    </script>
   </head>
   <body>
     <div class="backdrop" aria-hidden="true">
