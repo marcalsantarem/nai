@@ -338,13 +338,16 @@ svg { display: block; flex: none; }
 .prep {
   --step-todo: #5d5ca3;
   --halo: rgba(255, 201, 77, 0.4);
+  --cup-inside: #fffdf7;
+  --pitcher: #e6ecf3;
+  gap: 12px;
+}
+/* Cores dos quadradinhos de ingrediente (Preparo e Cardápio). */
+.prep, .recipes {
   --tile-sand: #f3dcb8;
   --tile-sky: #cfe6f7;
   --tile-mint: #cfeedd;
   --tile-lilac: #e7e2fa;
-  --cup-inside: #fffdf7;
-  --pitcher: #e6ecf3;
-  gap: 12px;
 }
 /* O círculo do fundo fica 50 px mais alto nesta tela (mockup). */
 body:has(.prep) .backdrop__circle { top: 120px; }
@@ -734,3 +737,126 @@ body:has(.decor) .app { padding-bottom: 0; }
 .shop-btn:disabled .coin { opacity: 0.6; }
 .shop-btn:not(:disabled):active { transform: translateY(var(--press-offset)); box-shadow: 0 0 0 var(--ink); }
 .coin--xs { width: 18px; height: 18px; }
+
+/* ---------- Telas de lista: Clientes da casa (mockup 04-clientes) e Cardápio ---------- */
+/* Cores próprias (mockup 04-clientes). [Proposta]: mover para tokens.css (arquivo compartilhado). */
+.guests, .recipes {
+  --mystery-edge: #8d8bc4; /* contorno tracejado do cartão misterioso */
+  --mystery-fill: #5d5ca3; /* círculo do "?" */
+  gap: 12px;
+}
+body:has(.guests) .backdrop__circle,
+body:has(.recipes) .backdrop__circle { top: 140px; }
+
+.list-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 var(--gutter);
+  min-height: 48px;
+  flex: none;
+}
+.list-top__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.list-top .title-prep { font-size: 24px; }
+
+/* A lista rola por dentro; a navegação fica fixa embaixo. */
+.card-list {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--gutter) 6px; /* 6 px: a sombra do último cartão não corta */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.card-list > li { flex: none; }
+
+.guest {
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 20px;
+  box-shadow: 0 4px 0 var(--night);
+}
+.guest__portrait {
+  width: 60px;
+  height: 60px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 50%;
+  border: var(--outline);
+}
+.guest__portrait-canvas { display: block; width: 54px; height: 54px; }
+.guest__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.guest__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.guest__name { font-family: var(--font-display); font-weight: 700; font-size: 18px; line-height: 1.1; }
+.guest__fav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+.guest__line { font-size: 13px; font-weight: 600; line-height: 1.3; color: var(--text-muted); }
+
+/* Ainda não veio / bloqueada: tracejado sobre o fundo, sem sombra. */
+.guest--mystery,
+.recipe--locked {
+  border: var(--line) dashed var(--mystery-edge);
+  border-radius: 20px;
+  box-shadow: none;
+}
+.guest--mystery .guest__name,
+.recipe--locked .guest__name { color: var(--cream); }
+.guest__portrait--mystery {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mystery-fill);
+  border-color: var(--mystery-edge);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 28px;
+  color: var(--cream);
+}
+.guest__hint { font-size: 13px; font-weight: 700; line-height: 1.3; color: var(--text-on-dusk); }
+
+/* Cardápio */
+.recipe {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 20px;
+  box-shadow: 0 4px 0 var(--night);
+}
+.recipe--locked { gap: 3px; }
+.recipe__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.recipe__head .guest__name { min-width: 0; }
+.recipe__price {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+.recipe__steps { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; }
+.recipe__step {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--outline);
+  border-radius: 10px;
+  color: var(--ink);
+}
+.recipe__link { width: 12px; height: var(--line); flex: none; background: var(--ink); }

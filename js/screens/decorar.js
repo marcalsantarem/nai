@@ -151,7 +151,7 @@ function renderBar() {
   let text = '';
   if (notice && performance.now() < notice.until) text = notice.text;
   else notice = null;
-  if (placing) {
+  if (placing && !text) { // aviso (ex.: passagem fechada) fica por cima da dica de colocação
     const d = ITEM[placing.type];
     const hasSpot = placing.free.length > 0 || placing.from === 'move';
     text = hasSpot ? `Escolha um lugar livre para ${d.article} ${d.short.toLowerCase()}` : 'Não há lugar livre agora';
@@ -217,8 +217,11 @@ function onSceneClick(e) {
   if (placing) {
     const spot = spotAt(vx, vy, radius);
     if (!spot) return; // fora dos livres: nada acontece
-    if (placing.chosen && sameSpot(spot, placing.chosen)) { if (decor.place(spot).ok) sfx('place'); }
-    else decor.choose(spot);
+    const confirm = placing.chosen && sameSpot(spot, placing.chosen);
+    const res = confirm ? decor.place(spot) : decor.choose(spot);
+    if (confirm && res.ok) sfx('place');
+    // T-056: lugar que fecharia a passagem dos clientes
+    if (res.reason === 'blocks-path') notice = { text: 'Esse lugar fecha a passagem', until: performance.now() + NOTICE_MS };
   } else {
     const ref = itemAt(vx, vy, radius);
     if (ref) decor.pickUp(ref);

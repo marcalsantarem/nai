@@ -4,6 +4,7 @@ import { iconSvg } from '../icons.js';
 import { RECIPES } from '../data.js';
 import { project } from '../iso.js';
 import decor from '../decor.js';
+import { sfx } from '../audio.js';
 
 // Barra do M2: conta as servidas até o primeiro marco e para ali (decisões 20 e 23).
 
@@ -193,24 +194,65 @@ function openOrder() {
   if (order) game.go('preparo', { order });
 }
 
-// Toque na cena: só o primeiro cliente (arquitetura, seção 6).
+// Alvos dos rituais (T-039), em unidades do viewBox acima da âncora: mesmas alturas de art.js
+// (balão da sede a THIRST_H + 17; corpo do gato pela pose).
+const THIRST_H = { plant: 40, monstera: 60 };
+const BUBBLE_R = 11;
+const CAT_CENTER = { sleep: 10, walk: 13, sit: 15 };
+const CAT_HALF = 14;
+
+function thirstHeight(e) {
+  const it = layout && layout.floor.find((f) => `${f.c},${f.r}` === e.itemId);
+  return (it && THIRST_H[it.type]) || THIRST_H.plant;
+}
+
+// Distância do toque à planta com sede: o menor entre o balão e o vaso.
+function thirstDist(vx, vy, e) {
+  const p = project(e.gx, e.gy);
+  const h = thirstHeight(e);
+  const bubble = Math.hypot(vx - p.x, vy - (p.y - h - 17)) - BUBBLE_R;
+  const plant = Math.hypot(vx - p.x, vy - (p.y - h / 2)) - h / 4;
+  return Math.max(0, Math.min(bubble, plant));
+}
+
+// Toque na cena (arquitetura, seção 6): primeiro cliente > planta com sede > gato.
 function onSceneClick(e) {
-  if (!front || !art || !view) return;
+  if (!art || !view) return;
   const rect = canvas.getBoundingClientRect();
   const vb = art.SCENE_VIEWBOX;
   const vx = vb.x + (e.clientX - rect.left) / view.scale;
   const vy = vb.y + (e.clientY - rect.top) / view.scale;
-  const c = project(front.gx, front.gy, BODY_HEIGHT);
   const r = Math.max(TAP_RADIUS_PT / view.scale, TAP_RADIUS_VB);
-  if (Math.hypot(vx - c.x, vy - c.y) <= r) openOrder();
+  if (front) {
+    const c = project(front.gx, front.gy, BODY_HEIGHT);
+    if (Math.hypot(vx - c.x, vy - c.y) <= r) { openOrder(); return; }
+  }
+  const ents = game.sim.entities();
+  let plant = null, best = Infinity;
+  for (const t of ents) {
+    if (t.kind !== 'thirst') continue;
+    const d = thirstDist(vx, vy, t);
+    if (d <= r && d < best) { plant = t; best = d; }
+  }
+  if (plant) {
+    // moedas entram pelo estado (pílula) com o mesmo som da entrega
+    if (game.sim.water(plant.itemId).ok) sfx('coins');
+    return;
+  }
+  const cat = ents.find((t) => t.kind === 'cat');
+  if (cat) {
+    const p = project(cat.gx, cat.gy, CAT_CENTER[cat.pose] || CAT_CENTER.sleep);
+    if (Math.hypot(vx - p.x, vy - p.y) - CAT_HALF <= r) game.sim.petCat();
+  }
 }
 
 function onClick(e) {
   if (e.target.closest('[data-action="prepare"]')) { openOrder(); return; }
   const item = e.target.closest('.nav__item');
   if (!item) return;
-  // Café já está ativo; Cardápio e Clientes ainda não têm tela.
-  if (item.dataset.nav === 'decor') game.go('decorar');
+  // Café já está ativo.
+  const to = { decor: 'decorar', menu: 'cardapio', guests: 'clientes' }[item.dataset.nav];
+  if (to) game.go(to);
 }
 
 export default {

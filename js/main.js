@@ -5,9 +5,11 @@ import { unlock } from './audio.js';
 import cafeteria from './screens/cafeteria.js';
 import preparo from './screens/preparo.js';
 import decorar from './screens/decorar.js';
+import clientes from './screens/clientes.js';
+import cardapio from './screens/cardapio.js';
 
 // Registro de telas: cada uma tem enter(root, ctx), exit() e update(dt).
-const screens = { cafeteria, preparo, decorar };
+const screens = { cafeteria, preparo, decorar, clientes, cardapio };
 
 const MAX_DT = 0.05; // 50 ms
 const app = document.getElementById('app');
