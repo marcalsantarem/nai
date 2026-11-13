@@ -18,10 +18,10 @@ Jogo cozy de cafeteria para celular, numa noite de chuva: receber clientes, prep
 
 iPhone em retrato (Safari e PWA instalada), 390 × 844 pt de referência. Site estático, sem build, publicado no Netlify. Offline após a primeira abertura. Dados só no aparelho.
 
-## Escopo atual: M1 — Base visual (v0.1.0)
+## Escopo atual: M2 — Ciclo principal (v0.2.0). M1 fechado (tag v0.1.0)
 
-**Dentro:** tokens e componentes; tela Cafeteria com a sala isométrica estática do mockup; navegação visual; fontes locais; arquivo de versão; deploy.
-**Fora:** clientes, preparo, decoração, áudio, persistência, service worker.
+**Dentro:** clientes entrando pela porta e fazendo fila; balão de pedido; cartão do pedido; tela de Preparo (passos, camadas na xícara, desenho na espuma, Entregar); moedas e gorjeta; lugares nas mesas; as 4 receitas iniciais. Tasks a quebrar no início do marco.
+**Fora:** decoração e loja, clientes da casa, cardápio, nível e liberação de receitas, plantas, gato andando, áudio, persistência, service worker.
 
 ## Time
 

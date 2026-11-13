@@ -323,6 +323,262 @@ svg { display: block; flex: none; }
 }
 /* Sem cliente: a linha do valor reserva o espaço para a cena não pular quando alguém chega. */
 .order__price.is-placeholder { visibility: hidden; }
-/* Sem cliente: reserva 2 linhas de título (altura do mockup, 111 px), como um pedido real a 360–390. */
-.order .title-card.is-waiting { min-height: 2.2em; display: flex; align-items: center; }
+/* O título sempre ocupa a altura de 2 linhas (cartão de 111 px do mockup), com ou sem cliente;
+   um pedido longo reduz a fonte (fitOrderTitle em cafeteria.js) em vez de abrir a 3ª linha. */
+.order .title-card { min-height: var(--order-title-h); display: flex; align-items: center; }
+.order { --order-title-h: 42px; }
 .order__btn { flex: none; }
+
+/* Retrato: canvas de 54 px dentro do círculo de 60 com contorno. */
+.order__portrait-canvas { display: block; width: 54px; height: 54px; }
+.order__portrait--empty .order__portrait-canvas { visibility: hidden; }
+
+/* ---------- Tela Preparo ---------- */
+/* Cores próprias desta tela (mockup 02-preparo). [Proposta]: mover para tokens.css (arquivo compartilhado). */
+.prep {
+  --step-todo: #5d5ca3;
+  --halo: rgba(255, 201, 77, 0.4);
+  --tile-sand: #f3dcb8;
+  --tile-sky: #cfe6f7;
+  --tile-mint: #cfeedd;
+  --tile-lilac: #e7e2fa;
+  --cup-inside: #fffdf7;
+  --pitcher: #e6ecf3;
+  gap: 12px;
+}
+/* O círculo do fundo fica 50 px mais alto nesta tela (mockup). */
+body:has(.prep) .backdrop__circle { top: 120px; }
+
+.prep-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 var(--gutter);
+  min-height: 48px;
+}
+.prep-top__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.title-prep { font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.1; color: var(--cream); }
+.prep-top__step { font-size: 13px; font-weight: 700; color: var(--text-on-dusk); }
+
+/* Passos: círculos ligados por traços. */
+.prep-steps {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0 14px;
+  display: flex;
+  align-items: flex-start;
+  flex: none;
+}
+.prep-step {
+  flex: 0 1 66px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.prep-step__dot {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 50%;
+  border: var(--outline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink);
+  background: var(--step-todo);
+}
+.prep-step.is-todo .prep-step__dot { color: var(--cream); }
+.prep-step.is-done .prep-step__dot { background: var(--green); }
+.prep-step.is-current .prep-step__dot { background: var(--yellow); box-shadow: 0 0 0 4px var(--halo); }
+.prep-step__name { font-size: 12px; font-weight: 800; color: var(--cream); white-space: nowrap; }
+.prep-step__line {
+  flex: 1 1 0;
+  min-width: 6px;
+  height: 5px;
+  margin-top: 17px;
+  border-radius: 3px;
+  background: var(--step-todo);
+}
+.prep-step__line.is-done { background: var(--green); }
+
+/* Palco: parede menta, lambri e balcão de madeira. */
+.prep-stage {
+  position: relative;
+  margin: 0 var(--gutter);
+  height: 214px;
+  flex: none;
+  overflow: hidden;
+  border: var(--outline);
+  border-radius: var(--radius-nav);
+  box-shadow: var(--shadow-card);
+  background: var(--wall-right);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.prep-stage__rail { position: absolute; left: 0; right: 0; top: 44px; height: 10px; background: var(--wainscot); }
+.prep-stage__counter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 58px;
+  background: var(--floor-a);
+  border-top: 5px solid var(--wood);
+}
+.prep-stage__cup { position: relative; margin-bottom: 2px; }
+
+/* Xícara (SVG). */
+.cup { display: block; overflow: visible; }
+.cup__shadow { fill: var(--contact-shadow); fill-opacity: 0.14; }
+.cup__saucer { fill: var(--cream); stroke: var(--ink); stroke-width: 4; }
+.cup__handle-out, .cup__handle-in { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.cup__handle-out { stroke: var(--ink); stroke-width: 17; }
+.cup__handle-in { stroke: var(--cream); stroke-width: 9; }
+.cup__inside { fill: var(--cup-inside); }
+.cup__outline { fill: none; stroke: var(--ink); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+.cup__gloss { fill: #fff; fill-opacity: 0.7; }
+.cup__pitcher { fill: var(--pitcher); stroke: var(--ink); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.cup__pitcher-handle { fill: none; stroke: var(--ink); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.cup__figure path { fill: none; stroke: var(--wood); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.cup__tea path { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.cup__tea rect { fill: var(--coral); stroke: var(--ink); stroke-width: 3; }
+
+/* Enchimento de ~0,8 s: a camada cresce a partir da base. */
+.cup__layer.is-fill {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: prep-fill 0.8s ease-out both;
+}
+.is-fade { animation: prep-fade 0.8s ease-out both; }
+.cup__pour { animation: prep-pour 0.9s ease-out both; }
+@keyframes prep-fill { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes prep-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes prep-pour { 0% { opacity: 0; } 15%, 80% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Dica de uma linha e escolha do desenho. */
+.prep-hint {
+  position: relative;
+  margin: 0 var(--gutter);
+  flex: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.2;
+  color: var(--cream);
+  text-align: center;
+}
+.prep-hint[hidden], .prep-art[hidden] { display: none; }
+.prep-art {
+  position: relative;
+  margin: 0 var(--gutter);
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.prep-art__btn {
+  height: var(--touch-min);
+  min-width: 0;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--yellow);
+  border: var(--outline);
+  border-radius: var(--radius-button);
+  box-shadow: var(--shadow-button), 0 0 0 5px var(--halo);
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 60ms, box-shadow 60ms;
+}
+
+/* Grade 2 × 4 de ingredientes. */
+.prep-grid {
+  position: relative;
+  margin: 0 var(--gutter);
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.prep-ing {
+  height: 56px;
+  min-width: 0;
+  padding: 0 10px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--cream);
+  border: var(--outline);
+  border-radius: var(--radius-button);
+  box-shadow: var(--shadow-button);
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.1;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 60ms, box-shadow 60ms;
+}
+.prep-ing__tile {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tile--sand { background: var(--tile-sand); }
+.tile--sky { background: var(--tile-sky); }
+.tile--mint { background: var(--tile-mint); }
+.tile--lilac { background: var(--tile-lilac); }
+.prep-ing__name { min-width: 0; }
+.prep-ing.is-next { background: var(--yellow); box-shadow: var(--shadow-button), 0 0 0 5px var(--halo); }
+.prep-ing.is-next .prep-ing__tile { background: var(--cream); }
+
+.prep-ing:active { transform: translateY(var(--press-offset)); box-shadow: var(--shadow-pressed); }
+.prep-ing.is-next:active, .prep-art__btn:active {
+  transform: translateY(var(--press-offset));
+  box-shadow: var(--shadow-pressed), 0 0 0 5px var(--halo);
+}
+
+/* Toque errado: balança, sem punição. A dica pulsa para repetir o passo certo. */
+.prep-ing.is-wrong { animation: prep-shake 0.36s ease-in-out; }
+.is-nudge { animation: prep-nudge 0.36s ease-out; }
+@keyframes prep-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(2px); }
+}
+@keyframes prep-nudge { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.06); } }
+
+/* Entregar: desativado com "faltam N passos"; verde no fim. */
+.prep-deliver {
+  position: relative;
+  margin: auto var(--gutter) 0;
+  height: 54px;
+  flex: none;
+  border-radius: 18px;
+}

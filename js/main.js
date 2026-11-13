@@ -1,15 +1,20 @@
-// Ponto de entrada: laço principal e troca de telas.
+// Ponto de entrada: estado, simulação, laço principal e troca de telas.
+import * as state from './state.js';
+import { createSim } from './sim.js';
 import cafeteria from './screens/cafeteria.js';
+import preparo from './screens/preparo.js';
 
-// Registro de telas: cada uma tem enter(root), exit() e update(dt).
-const screens = { cafeteria };
+// Registro de telas: cada uma tem enter(root, ctx), exit() e update(dt).
+const screens = { cafeteria, preparo };
 
 const MAX_DT = 0.05; // 50 ms
 const app = document.getElementById('app');
+const sim = createSim({ store: state });
 let current = null;
 let lastTime = 0;
 
-export function showScreen(name) {
+// Troca de tela (arquitetura, seção 7). ctx = { sim, state, go, params }.
+export function go(name, params = {}) {
   const next = screens[name];
   if (!next) throw new Error(`Tela desconhecida: ${name}`);
   if (current) current.exit();
@@ -19,13 +24,19 @@ export function showScreen(name) {
   root.dataset.screen = name;
   app.append(root);
   current = next;
-  current.enter(root);
+  current.enter(root, { sim, state, go, params });
+}
+
+// Avança um quadro: a simulação roda em qualquer tela.
+export function step(dt) {
+  sim.update(dt);
+  if (current) current.update(dt);
 }
 
 function frame(time) {
   const dt = lastTime ? Math.min((time - lastTime) / 1000, MAX_DT) : 0;
   lastTime = time;
-  if (current) current.update(dt);
+  step(dt);
   requestAnimationFrame(frame);
 }
 
@@ -42,5 +53,5 @@ function blockSystemGestures() {
 }
 
 blockSystemGestures();
-showScreen('cafeteria');
+go('cafeteria');
 requestAnimationFrame(frame);
