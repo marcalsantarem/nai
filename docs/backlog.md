@@ -66,7 +66,6 @@ Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 →
 |---|---|---|---|---|
 | T-033 | Nível (marcos 2…40) e liberação de receitas (6, 10, 14, 24); barra de progresso real | P | AG01 (Gameplay) | feita (BRF-032) |
 | T-034 | Clientes da casa: 45% de chance, favorita, falas em sequência, Bia só depois do Mocha, visitas salvas | M | AG01 (Gameplay) | feita (BRF-034) |
-| T-035 | Cliente especial a cada 6 clientes, com recadinho (depende da decisão 14) | P | AG01 (Gameplay) | bloqueada (aguarda recadinhos do dono) |
 | T-036 | Plantas com sede a cada 60–120 s (regar = 2 moedas); gato dorme, passeia, senta 5–11 s e volta | M | AG01 (Gameplay) | feita (BRF-036) |
 | T-037 | Arte: aparência dos 5 clientes da casa e do especial, balão da gota, gato andando e sentado, fala do cliente | M | AG03 (Arte) | feita (BRF-035) |
 | T-038 | Áudio: chuva, música e efeitos por Web Audio; começa no toque e volta ao retornar ao app | M | AG04 (Áudio) | feita (BRF-033) |
@@ -92,6 +91,7 @@ Ordem: (T-033 ∥ T-038) → (T-034 ∥ T-037) → (T-035 ∥ T-036) → T-039 �
 | T-048 | Animações de toque e acabamento: botões, moedas, transições de tela; mover as cores locais de `.prep`, `.decor` e das telas Clientes/Cardápio para `tokens.css`; legenda da barra com nome longo (3 linhas a 360/390); retorno visual ao ganhar moedas | M | AG02 (UI) | a fazer |
 | T-049 | Desempenho: 60 fps em iPhone de 2020 em diante com a sala cheia | M | AG03 (Arte) | a fazer |
 | T-050 | Teste no iPhone: instalado, tela cheia, modo avião, som depois de trocar de app, chave de silêncio | M | Dono + AG06 (QA) | a fazer |
+| T-035 | Cliente especial a cada 6 clientes, com recadinho (depende da decisão 14) | P | AG01 (Gameplay) | bloqueada (aguarda recadinhos do dono; decisão 34) |
 | T-051 | Validação final: todos os critérios de aceite da especificação | M | AG06 (QA) | a fazer |
 | T-052 | Fechamento: versão 1.0.0, PR, tag v1.0.0 | P | AG00 | a fazer |
 
