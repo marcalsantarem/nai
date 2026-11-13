@@ -22,6 +22,7 @@ Repositório: https://github.com/marcalsantarem/nai
 ## Pull Request de fim de marco
 
 - Só o dono manda abrir. O AG00 escreve **título e descrição no chat**; o dono abre e mescla.
+- Junto com o texto, o AG00 sempre envia o **link do PR**: `https://github.com/marcalsantarem/nai/compare/main...dev?quick_pull=1&title=…&body=…` com título e descrição já preenchidos (URL-encoded), para o dono só conferir e criar.
 - Descrição: o que o marco fecha, principais entregas, validação (o que foi e o que não foi testado), o que acontece depois do merge.
 
 ## Versões e tags

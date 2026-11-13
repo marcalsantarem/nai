@@ -234,6 +234,8 @@ Módulo novo e não `state.js`: as regras ficam testáveis no Node, e o `state.j
 
 - A compra já guarda o item no estoque: fechar o app no meio da colocação não perde moedas.
 - Nada falha: chamada inválida devolve `{ ok: false }` e não altera nada.
+- Passagem (T-056): `choose` e `place` devolvem `{ ok: false, reason: 'blocks-path' }` se o item deixar sem rota a partir do HUB algum lugar de mesa, Q1–Q3 ou EXIT que tinha rota antes (mesma busca: `searchRoute` e `blockedTiles`, exportados de `sim.js`; `findRoute` = `searchRoute` ou reta). A tela mostra “Esse lugar fecha a passagem”.
+- Tipos de item e ids de `regulars` só valem se forem próprios do catálogo (sem protótipo: `constructor`, `__proto__` não passam).
 
 ## M3.4 Efeito na simulação
 
@@ -283,3 +285,32 @@ drawScene(ctx, { time, entities, layout, wall, floor, placing, now, music })
 4. Sala começa sem a caminha; o gato vem com a compra (decisão 29). `INITIAL_DECOR` deve ser ajustado na T-025.
 5. 4 espaços altos e 4 médios na parede esquerda (decisão 30).
 6. Nome editável em Ajustes (decisão 16), edição no M4.
+
+## M4 — Vida da loja (contrato do AG00)
+
+### M4.1 Entidades novas e campos novos
+
+```js
+// cliente: campos novos
+{ kind: 'customer', ..., regular: 'marina' | null, special: false,
+  speech: null }          // { text, p } p 0..1 durante ~4 s depois de servido; balão de fala acima da cabeça
+// gato (só existe com a caminha colocada; a caminha passa a ser desenhada vazia)
+{ id: 'cat', kind: 'cat', gx, gy, dir, pose: 'sleep' | 'walk' | 'sit', walk, heart: null | 0..1 }
+// planta com sede (uma por planta regável com sede)
+{ id: 'thirst-<itemId>', kind: 'thirst', gx, gy, itemId, depth }   // balão redondo com gota acima da planta
+```
+
+### M4.2 APIs novas (quem implementa registra aqui os nomes finais)
+
+- `state`: nível, receitas liberadas pelos marcos 6/10/14/24, `regulars` (visitas por id), `settings` (`music`, `rain`), `name` (até 24).
+  - Receitas (T-033): `unlockedFor(served)` / `getUnlocked()` (lista de RECIPES com `unlockAt <= served`), `isUnlocked(id, served?)`, `recipeProgressFor(served)` / `getRecipeProgress()` → `{ next, left, done, span, pct }`, contado desde o marco anterior; depois da última, `next: null`, `pct: 100`. Ao atingir um marco, `subscribe` recebe também `{ type: 'unlock', recipeId }` (sem gravar). Nível: `getLevel()` (já existia).
+  - `sim` sorteia o pedido entre `unlockedFor(store.get().served)` a cada chegada; `createSim({ recipes })` fixa o cardápio (testes). Barra da Cafeteria: “Faltam N bebidas para liberar o X”; depois da última, cheia e “Todas as receitas liberadas” [Proposta].
+  - Clientes da casa (T-034): `REGULARS` em `data.js` (`{ id, name, favorite, requires?, look, bg, lines[3] }`; ids `marina teo lucia jorge bia`), `REGULAR_CHANCE` 0.45, `SPEECH_TIME` 4 s. `state.getVisits(id)`, `state.addVisit(id)` (evento `{ type: 'regulars', id, value }`; salvo só com ids conhecidos).
+  - `sim`: na chegada, 45% de chance de um da casa fora da loja (Bia só com o Mocha liberado); pede a favorita se liberada. Ao servir, conta a visita e põe `speech: { text, p }` (fala `visitas % 3`, recomeça depois da 3ª [Proposta]); `deliver()` devolve também `regular` e `speech`. `entities()` e `getFront()` trazem `regular`; entidades também `name`, `special: false`, `speech`.
+- `sim`: `water(itemId)` (+2 moedas), `petCat()` (coração); `entities()` traz o necessário para a tela achar planta com sede e gato pelo toque.
+  - Rituais (T-036): `RITUALS` em `data.js` (sede 60–120 s, 2 moedas, gato senta 5–11 s; sono 8–18 s e 1,1 ladrilho/s [Proposta]). Nada é salvo.
+  - Planta: `itemId` = `'c,r'` do ladrilho; entidade `thirst` com `gx, gy` da âncora e `depth` = gx + gy + 0,05. Movida ou guardada, perde a sede e recomeça o tempo. `water(itemId)` → `{ ok, coins: 2 }` (sem sede: `{ ok: false }`), evento `{ type: 'water', itemId, coins }`.
+  - Gato: entidade `cat` (`pose` `sleep` na âncora da caminha, `walk`, `sit`; `depth` = gx + gy + 0,01). Passeia até um ladrilho de `freeSpots` com rota (desvia dos móveis e do balcão; sem rota, não sai). Móvel colocado no ladrilho do gato: ele volta na hora para a caminha [Proposta]; no destino do passeio: volta andando.
+  - `petCat()` → `{ ok }` e evento `{ type: 'pet' }`; sem caminha, `{ ok: false }`. Caminha na mão ou guardada: sem gato; colocada em outro lugar: o gato dorme nela.
+  - Ajustes (T-058): `state.setSettings({ music?, rain? })` (só booleanos; evento `{ type: 'settings', value, changed }`) e `state.setName(text)` (corta em 24, vazio = “Nai's Cafe”; evento `{ type: 'name', value }`); ambos gravam e só avisam se algo mudou. O painel de Ajustes usa só esses setters; o topo da Cafeteria e o áudio reagem pelo `subscribe`.
+- `audio` (`js/audio.js`): `unlock()` no primeiro toque, `setMusic(on)`, `setRain(on)`, `sfx('step' | 'coins' | 'place')`, retomada ao voltar ao app.

@@ -1,12 +1,15 @@
 // Ponto de entrada: estado, simulação, laço principal e troca de telas.
 import * as state from './state.js';
 import { createSim } from './sim.js';
+import { unlock } from './audio.js';
 import cafeteria from './screens/cafeteria.js';
 import preparo from './screens/preparo.js';
 import decorar from './screens/decorar.js';
+import clientes from './screens/clientes.js';
+import cardapio from './screens/cardapio.js';
 
 // Registro de telas: cada uma tem enter(root, ctx), exit() e update(dt).
-const screens = { cafeteria, preparo, decorar };
+const screens = { cafeteria, preparo, decorar, clientes, cardapio };
 
 const MAX_DT = 0.05; // 50 ms
 const app = document.getElementById('app');
@@ -54,5 +57,6 @@ function blockSystemGestures() {
 }
 
 blockSystemGestures();
+document.addEventListener('pointerdown', unlock, { capture: true, passive: true }); // som só após o toque; também retoma
 go('cafeteria');
 requestAnimationFrame(frame);

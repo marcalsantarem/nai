@@ -2,7 +2,7 @@
 // Carrega ao importar o módulo; grava agrupado após cada mudança. Toda falha de leitura ou gravação é ignorada.
 import {
   START_COINS, LEVELS, INITIAL_DECOR, DECOR_ITEMS, ROOM, TABLE_COLUMNS,
-  WALL_SLOTS, WALL_COLORS, FLOORS, SAVE_VERSION,
+  WALL_SLOTS, WALL_COLORS, FLOORS, SAVE_VERSION, RECIPES, RECIPE_MILESTONES, REGULARS,
 } from './data.js';
 
 export const SAVE_KEY = 'nais-cafe-v1';
@@ -144,8 +144,8 @@ export function parseSave(text) {
   if (FLOORS.some((f) => f.id === raw.floor)) s.floor = raw.floor;
   try { Object.assign(s, cleanDecor(raw, s)); } catch { Object.assign(s, copyDecor({ ...INITIAL_DECOR, wall: s.wall, floor: s.floor })); }
   if (isObj(raw.regulars)) {
-    for (const [id, n] of Object.entries(raw.regulars)) {
-      const q = count(n);
+    for (const { id } of REGULARS) { // só ids conhecidos (T-034)
+      const q = Object.prototype.hasOwnProperty.call(raw.regulars, id) ? count(raw.regulars[id]) : null;
       if (q !== null) s.regulars[id] = q;
     }
   }
@@ -234,8 +234,23 @@ export function spend(n) {
   return true;
 }
 
-export function incServed() { state.served += 1; emit('served', 1); }
+// Ao cruzar um marco, avisa também { type: 'unlock', recipeId } (T-033).
+export function incServed() {
+  state.served += 1;
+  emit('served', 1);
+  for (const r of RECIPES) if (r.unlockAt > 0 && r.unlockAt === state.served) send({ type: 'unlock', recipeId: r.id }, false);
+}
 export function incCount() { state.count += 1; emit('count', 1); }
+
+// Clientes da casa (T-034): visitas por id. Evento { type: 'regulars', id, value }.
+const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+export function getVisits(id) { return REGULARS.some((r) => r.id === id) && own(state.regulars, id) ? state.regulars[id] : 0; }
+export function addVisit(id) {
+  if (!REGULARS.some((r) => r.id === id)) return 0;
+  state.regulars[id] = (own(state.regulars, id) ? state.regulars[id] : 0) + 1;
+  send({ type: 'regulars', id, value: state.regulars[id] });
+  return state.regulars[id];
+}
 
 // Troca campos da decoração ({ items, wallItems, stock, wall, floor }); só decor.js chama.
 // Evento { type: 'decor', change }.
@@ -245,6 +260,30 @@ export function setDecor(patch = {}, change = 'set') {
     if (patch[k] !== undefined) { state[k] = patch[k]; changed = true; }
   }
   if (changed) send({ type: 'decor', change });
+}
+
+// Ajustes (T-058): mescla só booleanos de music/rain. Evento { type: 'settings', value, changed }.
+export function setSettings(patch = {}) {
+  if (!isObj(state.settings)) state.settings = { music: true, rain: true };
+  const changed = [];
+  for (const k of ['music', 'rain']) {
+    if (isObj(patch) && typeof patch[k] === 'boolean' && state.settings[k] !== patch[k]) {
+      state.settings[k] = patch[k];
+      changed.push(k);
+    }
+  }
+  if (changed.length) send({ type: 'settings', value: { ...state.settings }, changed });
+  return { ...state.settings };
+}
+
+// Nome da cafeteria (decisão 16): corta em 24; vazio = DEFAULT_NAME. Evento { type: 'name', value }.
+export function setName(text) {
+  const v = cleanName(text) || DEFAULT_NAME;
+  if (v !== state.name) {
+    state.name = v;
+    emit('name', 0);
+  }
+  return state.name;
 }
 
 export function subscribe(fn) {
@@ -261,6 +300,7 @@ export function reset() {
   state = initial();
   for (const k of ['coins', 'served', 'count']) emit(k, state[k] - old[k], false);
   send({ type: 'decor', change: 'reset' }, false);
+  send({ type: 'regulars', id: null, value: 0 }, false);
 }
 
 // Nível pelos marcos de LEVELS (decisão 23): 1 + marcos atingidos.
@@ -271,3 +311,32 @@ export function levelFor(served) {
 }
 
 export function getLevel() { return levelFor(state.served); }
+
+// ---------- Receitas liberadas (T-033; decisões 13 e 25) ----------
+const servedOf = (v) => count(v) ?? 0;
+
+// Receitas liberadas com `served` bebidas, na ordem de RECIPES.
+export function unlockedFor(served) {
+  const n = servedOf(served);
+  return RECIPES.filter((r) => r.unlockAt <= n);
+}
+
+export function isUnlocked(recipeId, served = state.served) {
+  return unlockedFor(served).some((r) => r.id === recipeId);
+}
+
+// Avanço até a próxima receita, contado desde o marco anterior.
+// { next: receita | null, left, done, span, pct }. Depois da última: next null, pct 100.
+export function recipeProgressFor(served) {
+  const n = servedOf(served);
+  const at = RECIPE_MILESTONES.find((m) => m > n);
+  if (at === undefined) return { next: null, left: 0, done: 1, span: 1, pct: 100 };
+  const from = [0, ...RECIPE_MILESTONES].filter((m) => m <= n).pop();
+  const span = at - from;
+  const done = n - from;
+  const next = RECIPES.find((r) => r.unlockAt === at) || null;
+  return { next, left: at - n, done, span, pct: Math.round((done / span) * 100) };
+}
+
+export function getUnlocked() { return unlockedFor(state.served); }
+export function getRecipeProgress() { return recipeProgressFor(state.served); }

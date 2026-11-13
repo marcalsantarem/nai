@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Git (regras obrigatórias)
 
 - Trabalhe e faça commit **somente na `dev`**. O líder faz commit e push por conta própria ao fechar uma etapa.
-- A **`main` é protegida**: nunca commit nem push nela. Só recebe PR `dev` → `main`, aberto pelo dono quando ele pedir.
+- A **`main` é protegida**: nunca commit nem push nela. Só recebe PR `dev` → `main`, aberto pelo dono quando ele pedir. Ao preparar o PR, envie no chat título, descrição **e o link** de criação já preenchido (ver git-workflow).
 - Não crie outras branches sem pedido explícito do dono. Versões fechadas ficam só em **tag**.
 - Detalhes em [docs/git-workflow.md](docs/git-workflow.md).
 

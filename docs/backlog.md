@@ -56,7 +56,7 @@ Fora do M2 (ficam para o M3/M4): salvar progresso, liberar Mocha, Chocolate quen
 | T-030 | Loja: abas Salão, Paredes e Cores, grade de 3 colunas, estados do botão (preço, “Colocando”, “Colocar · N”, desativado) | G | AG02 (UI) | feita (BRF-029) |
 | T-031 | Validação do M3: 17 itens comprados, colocados, movidos e guardados; fechar e reabrir mantém tudo | M | AG06 (QA) | feita (BRF-030): passa com ressalvas, ver docs/qa/qa-M3.md |
 | T-055 | QA do M3: clientes desviam dos móveis (D3) e tipos do salvo validados (D1) | M | AG01 (Gameplay) | feita (BRF-031) |
-| T-032 | Fechamento do M3: versão 0.3.0, PR, tag v0.3.0 | P | AG00 | em andamento (versão 0.3.0 na dev; aguarda PR e tag) |
+| T-032 | Fechamento do M3: versão 0.3.0, PR, tag v0.3.0 | P | AG00 | feita (PR #3, tag v0.3.0) |
 
 Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 → T-030 → T-031 → T-032.
 
@@ -64,19 +64,20 @@ Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 →
 
 | ID | Título | Tam. | Dono | Estado |
 |---|---|---|---|---|
-| T-033 | Nível (marcos 2…40) e liberação de receitas (6, 10, 14, 24); barra de progresso real | P | AG01 (Gameplay) | a fazer |
-| T-034 | Clientes da casa: 45% de chance, favorita, falas em sequência, Bia só depois do Mocha, visitas salvas | M | AG01 (Gameplay) | a fazer |
-| T-035 | Cliente especial a cada 6 clientes, com recadinho (depende da decisão 14) | P | AG01 (Gameplay) | bloqueada (aguarda recadinhos do dono) |
-| T-036 | Plantas com sede a cada 60–120 s (regar = 2 moedas); gato dorme, passeia, senta 5–11 s e volta | M | AG01 (Gameplay) | a fazer |
-| T-037 | Arte: aparência dos 5 clientes da casa e do especial, balão da gota, gato andando e sentado, fala do cliente | M | AG03 (Arte) | a fazer |
-| T-038 | Áudio: chuva, música e efeitos por Web Audio; começa no toque e volta ao retornar ao app | M | AG04 (Áudio) | a fazer |
-| T-039 | Toques na cena: planta com sede rega, gato solta coração | P | AG02 (UI) | a fazer |
-| T-040 | Tela Clientes da casa: cartões, selo de visitas, “Cliente misterioso” tracejado, “N de 5” | M | AG02 (UI) | a fazer |
-| T-041 | Tela Cardápio: receitas com preço e passos; bloqueadas tracejadas com “Libera com N bebidas” | M | AG02 (UI) | a fazer |
-| T-042 | Ajustes: painel deslizante, música e chuva, nome da cafeteria editável (decisão 16), “Recomeçar do zero” em dois toques | M | AG02 (UI) | a fazer |
-| T-043 | Validação do M4: 8 receitas liberam nos marcos, clientes da casa, rituais, áudio e telas novas | M | AG06 (QA) | a fazer |
-| T-056 | Resto do D1 (tipos sem protótipo em `decor.js` e `regulars`) e impedir mesa cujos lugares fiquem sem acesso | P | AG01 (Gameplay) | a fazer |
-| T-044 | Fechamento do M4: versão 0.4.0, PR, tag v0.4.0 | P | AG00 | a fazer |
+| T-033 | Nível (marcos 2…40) e liberação de receitas (6, 10, 14, 24); barra de progresso real | P | AG01 (Gameplay) | feita (BRF-032) |
+| T-034 | Clientes da casa: 45% de chance, favorita, falas em sequência, Bia só depois do Mocha, visitas salvas | M | AG01 (Gameplay) | feita (BRF-034) |
+| T-036 | Plantas com sede a cada 60–120 s (regar = 2 moedas); gato dorme, passeia, senta 5–11 s e volta | M | AG01 (Gameplay) | feita (BRF-036) |
+| T-037 | Arte: aparência dos 5 clientes da casa e do especial, balão da gota, gato andando e sentado, fala do cliente | M | AG03 (Arte) | feita (BRF-035) |
+| T-038 | Áudio: chuva, música e efeitos por Web Audio; começa no toque e volta ao retornar ao app | M | AG04 (Áudio) | feita (BRF-033) |
+| T-039 | Toques na cena: planta com sede rega, gato solta coração | P | AG02 (UI) | feita (BRF-038) |
+| T-040 | Tela Clientes da casa: cartões, selo de visitas, “Cliente misterioso” tracejado, “N de 5” | M | AG02 (UI) | feita (BRF-039) |
+| T-041 | Tela Cardápio: receitas com preço e passos; bloqueadas tracejadas com “Libera com N bebidas” | M | AG02 (UI) | feita (BRF-040) |
+| T-042 | Ajustes: painel deslizante, música e chuva, nome da cafeteria editável (decisão 16), “Recomeçar do zero” em dois toques | M | AG02 (UI) | feita (BRF-042) |
+| T-057 | Animação “+N” ao ganhar moedas (entrega e regar) | P | AG02 (UI) | feita (BRF-041) |
+| T-058 | Setters oficiais de ajustes e nome no estado | P | AG01 (Gameplay) | feita (BRF-043) |
+| T-043 | Validação do M4: 8 receitas liberam nos marcos, clientes da casa, rituais, áudio e telas novas | M | AG06 (QA) | feita (BRF-044): passa com ressalvas, ver docs/qa/qa-M4.md |
+| T-056 | Resto do D1 (tipos sem protótipo em `decor.js` e `regulars`) e impedir mesa cujos lugares fiquem sem acesso | P | AG01 (Gameplay) | feita (BRF-037) |
+| T-044 | Fechamento do M4: versão 0.4.0, PR, tag v0.4.0 | P | AG00 | em andamento (versão 0.4.0 na dev; aguarda PR e tag) |
 
 Ordem: (T-033 ∥ T-038) → (T-034 ∥ T-037) → (T-035 ∥ T-036) → T-039 → T-040 → T-041 → T-042 → T-043 → T-044.
 
@@ -87,9 +88,10 @@ Ordem: (T-033 ∥ T-038) → (T-034 ∥ T-037) → (T-035 ∥ T-036) → T-039 �
 | T-045 | Manifesto, metadados da Apple e ícones (192, 512 mascarável, 180) com “Nai's Cafe” | M | AG05 (Plataforma) | a fazer |
 | T-046 | Service worker: offline, rede primeiro na navegação, cache com a versão (decisão 11) | M | AG05 (Plataforma) | a fazer |
 | T-047 | Áreas seguras e gestos do sistema no app instalado; campos de texto com 16 px | P | AG02 (UI) | a fazer |
-| T-048 | Animações de toque e acabamento: botões, moedas, transições de tela; mover as cores locais de `.prep` e `.decor` para `tokens.css` | M | AG02 (UI) | a fazer |
+| T-048 | Animações de toque e acabamento: botões, moedas, transições de tela; mover as cores locais de `.prep`, `.decor` e das telas Clientes/Cardápio para `tokens.css`; legenda da barra com nome longo (3 linhas a 360/390); ressalvas D1–D6 do `docs/qa/qa-M4.md` (gota e gato na Decorar, nome longo no topo, fala sobre o pedido, marca no ladrilho que fecha a passagem, barra de rolagem do Cardápio, largura do `body`) | M | AG02 (UI) | a fazer |
 | T-049 | Desempenho: 60 fps em iPhone de 2020 em diante com a sala cheia | M | AG03 (Arte) | a fazer |
 | T-050 | Teste no iPhone: instalado, tela cheia, modo avião, som depois de trocar de app, chave de silêncio | M | Dono + AG06 (QA) | a fazer |
+| T-035 | Cliente especial a cada 6 clientes, com recadinho (depende da decisão 14) | P | AG01 (Gameplay) | bloqueada (aguarda recadinhos do dono; decisão 34) |
 | T-051 | Validação final: todos os critérios de aceite da especificação | M | AG06 (QA) | a fazer |
 | T-052 | Fechamento: versão 1.0.0, PR, tag v1.0.0 | P | AG00 | a fazer |
 

@@ -1,13 +1,13 @@
 // Tela Cafeteria (tela inicial): topo, cena isométrica, cartão do pedido e navegação.
 import { VERSION } from '../version.js';
 import { iconSvg } from '../icons.js';
-import { RECIPES, RECIPE_MILESTONES } from '../data.js';
+import { RECIPES } from '../data.js';
 import { project } from '../iso.js';
 import decor from '../decor.js';
+import { sfx } from '../audio.js';
+import { openSettings } from './ajustes.js';
 
 // Barra do M2: conta as servidas até o primeiro marco e para ali (decisões 20 e 23).
-const NEXT_AT = RECIPE_MILESTONES[0];
-const NEXT_RECIPE = RECIPES.find((r) => r.unlockAt === NEXT_AT);
 
 const PORTRAIT_SIZE = 54; // área interna do retrato (60 menos o contorno)
 const TAP_RADIUS_PT = 22; // raio mínimo do toque no primeiro cliente
@@ -27,18 +27,16 @@ const NAV = [
   ['guests', 'Clientes'],
 ];
 
-function progressInfo(served) {
-  const span = NEXT_AT;
-  const done = Math.min(span, Math.max(0, served));
-  const left = span - done;
-  const pct = Math.round((done / span) * 100);
-  // espaço inseparável no nome: evita "o" / "Mocha" órfão na última linha
-  const recipe = `o ${NEXT_RECIPE.name}`;
-  let caption;
-  if (left === 0) caption = `O ${NEXT_RECIPE.name} chega em breve`;
-  else if (left === 1) caption = `Falta 1 bebida para liberar ${recipe}`;
-  else caption = `Faltam ${left} bebidas para liberar ${recipe}`;
-  return { pct, caption, done, span };
+// Barra e legenda pela próxima receita do estado (T-033). Depois da última: barra cheia.
+function progressInfo() {
+  const p = game.state.getRecipeProgress();
+  if (!p.next) return { ...p, caption: 'Todas as receitas liberadas' };
+  // espaço inseparável no nome: evita "o" / nome órfão na última linha
+  const recipe = `o ${p.next.name}`;
+  const caption = p.left === 1
+    ? `Falta 1 bebida para liberar ${recipe}`
+    : `Faltam ${p.left} bebidas para liberar ${recipe}`;
+  return { ...p, caption };
 }
 
 function template() {
@@ -46,7 +44,7 @@ function template() {
   <header class="top">
     <div class="level"><span class="level__label">nível</span><span class="level__value" data-ref="level"></span></div>
     <div class="top__info">
-      <h1 class="title-screen">Nai's Cafe</h1>
+      <h1 class="title-screen top__name" data-ref="name"></h1>
       <div class="progress" role="img" data-ref="progress"><div class="progress__fill"></div></div>
       <p class="caption" data-ref="caption"></p>
     </div>
@@ -90,6 +88,7 @@ let front = null; // primeiro cliente parado em Q1, ou null
 let time = 0;
 let view = null; // { cssW, cssH, dpr, scale }
 let layout = null; // decor.sceneLayout(), refeito no evento 'decor'
+let closeSettings = null; // painel de Ajustes aberto (T-042)
 
 // Tamanho da cena: a sala ocupa a largura da coluna cortando 18 px de cada ponta
 // (a 390 px dá os 440 × 390 do mockup); reduz se não couber na altura.
@@ -110,6 +109,7 @@ function layoutCanvas() {
   canvas.height = Math.round(cssH * dpr);
   view = { cssW, cssH, dpr, scale };
   fitOrderTitle();
+  fitName();
   draw(); // redesenha já: mudar o tamanho limpa o canvas
 }
 
@@ -132,13 +132,77 @@ function draw() {
 
 function renderTop() {
   const s = game.state.get();
-  const p = progressInfo(s.served);
+  const p = progressInfo();
   refs.level.textContent = String(game.state.getLevel());
   refs.progress.style.setProperty('--value', `${p.pct}%`);
-  refs.progress.setAttribute('aria-label', `Progresso: ${p.done} de ${p.span} bebidas para a próxima receita`);
+  refs.progress.setAttribute('aria-label', p.next
+    ? `Progresso: ${p.done} de ${p.span} bebidas para a próxima receita`
+    : 'Todas as receitas liberadas');
   refs.caption.textContent = p.caption;
+  if (refs.name.textContent !== s.name) { refs.name.textContent = s.name; fitName(); }
   refs.coins.textContent = String(s.coins);
   refs.coinsPill.setAttribute('aria-label', `${s.coins} moedas`);
+}
+
+// Nome longo (até 24 caracteres): reduz a fonte até caber; no limite, reticências.
+const NAME_MIN_PX = 14;
+function fitName() {
+  if (!refs) return;
+  const t = refs.name;
+  t.style.fontSize = '';
+  let size = parseFloat(getComputedStyle(t).fontSize);
+  while (t.scrollWidth > t.clientWidth + 0.5 && size > NAME_MIN_PX) {
+    size -= 1;
+    t.style.fontSize = `${size}px`;
+  }
+}
+
+// ---------- Ganho de moedas (T-057): "+N" que sobe e some, pulinho na pílula ----------
+
+const GAIN_EDGE = 24; // px: distância mínima do centro do "+N" à borda da tela
+const GAIN_MS = 1200; // reserva: remove mesmo se animationend não vier
+
+// Mostra "+N" com o centro em (x, y), em px relativos à tela.
+function showGain(n, x, y) {
+  if (!root || !(n > 0)) return;
+  const el = document.createElement('span');
+  el.className = 'coin-gain';
+  el.setAttribute('aria-hidden', 'true');
+  el.textContent = `+${n}`;
+  const w = root.clientWidth;
+  el.style.left = `${Math.max(GAIN_EDGE, Math.min(w - GAIN_EDGE, x))}px`; // não sai da coluna
+  el.style.top = `${y}px`;
+  const host = root;
+  host.append(el);
+  const done = () => el.remove();
+  el.addEventListener('animationend', done, { once: true });
+  setTimeout(done, GAIN_MS);
+  bumpPill();
+}
+
+function bumpPill() {
+  const pill = refs && refs.coinsPill;
+  if (!pill) return;
+  pill.classList.remove('is-bump');
+  void pill.offsetWidth; // reinicia a animação
+  pill.classList.add('is-bump');
+}
+
+// "+N" sobre a pílula de moedas (entrega).
+function showGainAtPill(n) {
+  if (!root || !refs) return;
+  const r = refs.coinsPill.getBoundingClientRect();
+  const o = root.getBoundingClientRect();
+  showGain(n, r.left + r.width / 2 - o.left, r.top - o.top); // nasce na borda de cima e sobe
+}
+
+// "+N" num ponto da cena, em unidades do viewBox (planta regada).
+function showGainAtScene(n, vx, vy) {
+  if (!root || !art || !view) return;
+  const vb = art.SCENE_VIEWBOX;
+  const c = canvas.getBoundingClientRect();
+  const o = root.getBoundingClientRect();
+  showGain(n, c.left - o.left + (vx - vb.x) * view.scale, c.top - o.top + (vy - vb.y) * view.scale);
 }
 
 // ---------- Cartão do pedido ----------
@@ -195,24 +259,77 @@ function openOrder() {
   if (order) game.go('preparo', { order });
 }
 
-// Toque na cena: só o primeiro cliente (arquitetura, seção 6).
+// Alvos dos rituais (T-039), em unidades do viewBox acima da âncora: mesmas alturas de art.js
+// (balão da sede a THIRST_H + 17; corpo do gato pela pose).
+const THIRST_H = { plant: 40, monstera: 60 };
+const BUBBLE_R = 11;
+const CAT_CENTER = { sleep: 10, walk: 13, sit: 15 };
+const CAT_HALF = 14;
+
+function thirstHeight(e) {
+  const it = layout && layout.floor.find((f) => `${f.c},${f.r}` === e.itemId);
+  return (it && THIRST_H[it.type]) || THIRST_H.plant;
+}
+
+// Distância do toque à planta com sede: o menor entre o balão e o vaso.
+function thirstDist(vx, vy, e) {
+  const p = project(e.gx, e.gy);
+  const h = thirstHeight(e);
+  const bubble = Math.hypot(vx - p.x, vy - (p.y - h - 17)) - BUBBLE_R;
+  const plant = Math.hypot(vx - p.x, vy - (p.y - h / 2)) - h / 4;
+  return Math.max(0, Math.min(bubble, plant));
+}
+
+// Toque na cena (arquitetura, seção 6): primeiro cliente > planta com sede > gato.
 function onSceneClick(e) {
-  if (!front || !art || !view) return;
+  if (!art || !view) return;
   const rect = canvas.getBoundingClientRect();
   const vb = art.SCENE_VIEWBOX;
   const vx = vb.x + (e.clientX - rect.left) / view.scale;
   const vy = vb.y + (e.clientY - rect.top) / view.scale;
-  const c = project(front.gx, front.gy, BODY_HEIGHT);
   const r = Math.max(TAP_RADIUS_PT / view.scale, TAP_RADIUS_VB);
-  if (Math.hypot(vx - c.x, vy - c.y) <= r) openOrder();
+  if (front) {
+    const c = project(front.gx, front.gy, BODY_HEIGHT);
+    if (Math.hypot(vx - c.x, vy - c.y) <= r) { openOrder(); return; }
+  }
+  const ents = game.sim.entities();
+  let plant = null, best = Infinity;
+  for (const t of ents) {
+    if (t.kind !== 'thirst') continue;
+    const d = thirstDist(vx, vy, t);
+    if (d <= r && d < best) { plant = t; best = d; }
+  }
+  if (plant) {
+    // moedas entram pelo estado (pílula) com o mesmo som da entrega
+    const res = game.sim.water(plant.itemId);
+    if (res.ok) {
+      sfx('coins');
+      const p = project(plant.gx, plant.gy);
+      showGainAtScene(res.coins, p.x, p.y - thirstHeight(plant) - 17);
+    }
+    return;
+  }
+  const cat = ents.find((t) => t.kind === 'cat');
+  if (cat) {
+    const p = project(cat.gx, cat.gy, CAT_CENTER[cat.pose] || CAT_CENTER.sleep);
+    if (Math.hypot(vx - p.x, vy - p.y) - CAT_HALF <= r) game.sim.petCat();
+  }
 }
 
 function onClick(e) {
   if (e.target.closest('[data-action="prepare"]')) { openOrder(); return; }
+  if (e.target.closest('[data-action="settings"]')) {
+    if (!closeSettings) {
+      closeSettings = openSettings(root, { state: game.state, onName: renderTop, onClose: () => { closeSettings = null; } });
+    }
+    return;
+  }
+  if (e.target.closest('.settings')) return; // toques dentro do painel
   const item = e.target.closest('.nav__item');
   if (!item) return;
-  // Café já está ativo; Cardápio e Clientes ainda não têm tela.
-  if (item.dataset.nav === 'decor') game.go('decorar');
+  // Café já está ativo.
+  const to = { decor: 'decorar', menu: 'cardapio', guests: 'clientes' }[item.dataset.nav];
+  if (to) game.go(to);
 }
 
 export default {
@@ -249,7 +366,11 @@ export default {
       }),
     ];
 
-    document.fonts.ready.then(() => { fontsReady = true; fitOrderTitle(); });
+    // Entrega no Preparo: o "+N" aparece aqui, sobre a pílula, ao voltar.
+    const gain = Math.round(Number(context.params && context.params.gain) || 0);
+    if (gain > 0) requestAnimationFrame(() => { if (root === el) showGainAtPill(gain); });
+
+    document.fonts.ready.then(() => { fontsReady = true; fitOrderTitle(); fitName(); });
     // art.js é do AG03; se ainda não existir, a cena fica vazia sem erro.
     import('../art.js')
       .then((mod) => {
@@ -261,6 +382,7 @@ export default {
       .catch(() => { console.info('art.js indisponível: cena vazia.'); });
   },
   exit() {
+    if (closeSettings) closeSettings();
     for (const u of unsubs) u();
     unsubs = [];
     if (resizeObs) resizeObs.disconnect();

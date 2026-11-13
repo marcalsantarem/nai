@@ -4,10 +4,12 @@ import {
   DECOR_ITEMS, ROOM, TABLE_SEATS, TABLE_COLUMNS, WALL_SLOTS, WALL_COLORS, FLOORS,
 } from './data.js';
 import * as stateModule from './state.js';
+import { blockedTiles, searchRoute } from './sim.js';
 
 const SIZE = 6;
 const WALLS = ['left', 'right'];
-const ITEM = Object.fromEntries(DECOR_ITEMS.map((d) => [d.id, d]));
+// Sem protótipo: só os tipos do catálogo (constructor, __proto__, toString não passam; D1).
+const ITEM = Object.assign(Object.create(null), Object.fromEntries(DECOR_ITEMS.map((d) => [d.id, d])));
 const key = (c, r) => c + ',' + r;
 const RESERVED = new Set(ROOM.reservedTiles.map(([c, r]) => key(c, r)));
 const NO_STOOL = new Set((ROOM.noStoolTiles || []).map(([c, r]) => key(c, r)));
@@ -17,6 +19,19 @@ const inGrid = (c, r) => Number.isInteger(c) && Number.isInteger(r) && c >= 0 &&
 export function anchorOf(type, c, r) {
   const o = (ITEM[type] && ITEM[type].offset) || [0, 0];
   return { gx: c + 0.5 + o[0], gy: r + 0.5 + o[1] };
+}
+
+// Passagem (T-056): do HUB, cada lugar de mesa, a fila e a saída precisam de rota (a mesma
+// busca de findRoute). Devolve as chaves dos destinos sem rota.
+function cutOff(floor) {
+  const blocked = blockedTiles(floor);
+  const goals = [...ROOM.queue.map((p, i) => ['q' + i, p]), ['exit', ROOM.exit]];
+  for (const it of floor) {
+    const d = ITEM[it.type];
+    if (!d || !d.seats) continue;
+    TABLE_SEATS.slice(0, d.seats).forEach((t, i) => goals.push([it.c + ',' + it.r + ':' + i, { gx: it.gx + t.dx, gy: it.gy + t.dy }]));
+  }
+  return goals.filter(([, p]) => !searchRoute(ROOM.hub, p, blocked)).map(([k]) => k);
 }
 
 // Ladrilhos dos banquinhos de uma mesa em (c, r) (decisão 28).
@@ -138,6 +153,15 @@ export function createDecor({ store = stateModule } = {}) {
     : a.wall === b.wall && a.pos === b.pos);
   const isFree = (type, s) => freeSpots(type).some((f) => spotEq(f, s));
 
+  const withAnchor = (it) => ({ ...it, ...anchorOf(it.type, it.c, it.r) });
+  // O item da mão em s fecha a passagem? Só conta o que tinha rota antes (salvo antigo não trava).
+  function blocksPath(type, s) {
+    if (ITEM[type].where !== 'floor' || ITEM[type].under) return false;
+    const before = liveItems().filter((it) => ITEM[it.type]).map(withAnchor);
+    const was = new Set(cutOff(before));
+    return cutOff([...before, withAnchor({ type, c: s[0], r: s[1] })]).some((k) => !was.has(k));
+  }
+
   // Estado do botão da loja (arquitetura, M3.7): { state, n } com n = estoque fora da mão.
   function shopState(type) {
     const def = ITEM[type];
@@ -185,6 +209,7 @@ export function createDecor({ store = stateModule } = {}) {
       return { ok: true, back: true };
     }
     if (!isFree(hand.type, s)) return { ok: false };
+    if (blocksPath(hand.type, s)) return { ok: false, reason: 'blocks-path' };
     hand.chosen = s;
     return { ok: true };
   }
@@ -195,6 +220,7 @@ export function createDecor({ store = stateModule } = {}) {
     if (!hand) return { ok: false };
     const s = normSpot(hand.type, spot);
     if (!s || !spotEq(s, hand.chosen) || !isFree(hand.type, s)) return { ok: false };
+    if (blocksPath(hand.type, s)) return { ok: false, reason: 'blocks-path' };
     const { type, from, origin } = hand;
     const floor = ITEM[type].where === 'floor';
     const next = floor ? { type, c: s[0], r: s[1] } : { type, wall: s.wall, pos: s.pos };
