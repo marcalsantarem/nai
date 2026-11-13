@@ -30,3 +30,9 @@ Ao mudar uma decisão, atualize esta tabela e, se for o caso, o `CLAUDE.md`.
 | 23 | Barra e nível no M2 | Decidido | Com 6 servidas a legenda diz “O Mocha chega em breve”; o nível já sobe nos marcos desde o M2 | Dono, 2026-11-12 |
 | 24 | Voltar do Preparo | Decidido | Guarda os passos já feitos; o cliente continua na fila | Dono, 2026-11-12 |
 | 25 | Marcos de receita | Decidido | 6, 10, 14 e 24 servidas (decisão 13 vale sobre o texto antigo da especificação) | AG00, 2026-11-12 |
+| 26 | Colocar móvel | Decidido | Dois toques: o 1º escolhe o ladrilho (verde, móvel transparente), o 2º no mesmo ladrilho confirma | Dono, 2026-11-13 |
+| 27 | Quadrinho azul | Decidido | Fica na sala inicial como um 2º item “Quadro”, que pode ser movido e guardado | Dono, 2026-11-13 |
+| 28 | Banquinhos | Decidido | Os ladrilhos dos banquinhos ao lado da mesa ficam bloqueados para outros itens | Dono, 2026-11-13 |
+| 29 | Caminha do gato | Decidido | A sala começa sem a caminha; o gato chega quando ela for comprada (60 moedas, limite 1) | Dono, 2026-11-13 |
+| 30 | Espaços de parede | Decidido | 4 altos e 4 médios na parede esquerda; rever se ficar apertado no teste | Dono, 2026-11-13 |
+

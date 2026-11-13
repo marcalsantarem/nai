@@ -47,7 +47,7 @@ Fora do M2 (ficam para o M3/M4): salvar progresso, liberar Mocha, Chocolate quen
 |---|---|---|---|---|
 | T-023 | Contratos da decoração em `docs/arquitetura.md`: ocupação da grade, itens de chão e de parede, áreas reservadas, estoque, formato salvo | P | AG01 (Gameplay) | feita (BRF-021) |
 | T-024 | `js/data.js`: 17 itens (onde, preço, observações), 5 cores de parede e 3 pisos | P | AG01 (Gameplay) | feita (BRF-022) |
-| T-025 | Regras: comprar, colocar, mover, guardar no estoque, ocupação (tapete por baixo, 1 espaço de parede), reservados, limite da caminha, mesa nova = +2 lugares na simulação | M | AG01 (Gameplay) | a fazer |
+| T-025 | Regras: comprar, colocar, mover, guardar no estoque, ocupação (tapete por baixo, 1 espaço de parede), reservados, limite da caminha, mesa nova = +2 lugares na simulação; ajustar `INITIAL_DECOR` às decisões 27 e 29 (2º Quadro, sem caminha) | M | AG01 (Gameplay) | a fazer |
 | T-026 | Salvamento em `localStorage` (`nais-cafe-v1`): moedas, servidas, contagem, parede, piso, itens, estoque; tolerante a falha | M | AG01 (Gameplay) | a fazer |
 | T-027 | Arte dos 17 itens em `js/art.js`; a sala passa a ser montada a partir do estado (não fixa); 5 cores de parede e 3 pisos | G | AG03 (Arte) | a fazer |
 | T-028 | Miniaturas da loja com as mesmas funções de desenho | M | AG03 (Arte) | a fazer |

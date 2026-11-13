@@ -273,11 +273,11 @@ drawScene(ctx, { time, entities, layout, wall, floor, placing, now, music })
 - Abas: Salão (`tab: 'salao'`, chão), Paredes (`'paredes'`), Cores (5 paredes + 3 pisos, aplicação imediata, ativo em amarelo).
 - Sair da tela ou trocar de cartão no meio: `cancel()`. A `sim` continua rodando.
 
-## M3.8 Pontos em aberto
+## M3.8 Pontos resolvidos
 
-1. [A definir] Colocar com 1 toque ou com escolha + confirmação (proposta acima: 2 toques no mesmo lugar).
-2. [A definir] O quadrinho azul (`drawSmallFrame`) sai da cena?
-3. [A definir] Banquinhos bloqueiam os ladrilhos vizinhos da mesa?
-4. [A definir] A caminha inicial conta para o limite de 1, deixando a compra de 60 sempre indisponível (o mockup mostra o preço 60).
-5. [A definir] Só 4 espaços médios de parede (direita toda reservada) é suficiente?
-6. Resolvido: nome da cafeteria editável em Ajustes (decisão 16); o campo `name` é salvo desde o M3 e a edição entra no M4 (T-042).
+1. Colocar com dois toques (decisão 26).
+2. Quadrinho azul = 2º “Quadro” no layout inicial (decisão 27).
+3. Ladrilhos dos banquinhos bloqueados (decisão 28).
+4. Sala começa sem a caminha; o gato vem com a compra (decisão 29). `INITIAL_DECOR` deve ser ajustado na T-025.
+5. 4 espaços altos e 4 médios na parede esquerda (decisão 30).
+6. Nome editável em Ajustes (decisão 16), edição no M4.
