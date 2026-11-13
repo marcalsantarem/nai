@@ -35,7 +35,7 @@ Dependências: T-002 antes de T-005/T-006/T-007 · T-004 antes de T-007 · T-005
 | T-020 | Tela Preparo (`js/screens/preparo.js`) igual ao mockup: topo, passos, palco com a xícara e camadas animadas (~0,8 s), dica, grade 2 × 4 com o próximo em destaque, erro sem punição (balança e repete a dica), desenho na espuma (coração, flor, estrela), “Entregar”, voltar sem perder o cliente | G | AG02 (UI) | feita (BRF-018) |
 | T-021 | Validação do M2: 4 receitas iniciais preparáveis, 20 clientes seguidos sem travar e sem forma de perder, telas Cafeteria e Preparo contra o mockup | M | AG06 (QA) | feita (BRF-019): passa com ressalvas, ver docs/qa/qa-M2.md |
 | T-053 | QA D1/D2: reposicionar a fila para não se sobrepor a quem senta no banquinho 1 | P | AG03 (Arte) | feita (BRF-020) |
-| T-022 | Fechamento do M2: versão 0.2.0, PR `dev` → `main`, tag v0.2.0 | P | AG00 | em andamento (versão 0.2.0 na dev; aguarda PR e tag) |
+| T-022 | Fechamento do M2: versão 0.2.0, PR `dev` → `main`, tag v0.2.0 | P | AG00 | feita (PR #2, tag v0.2.0) |
 
 Ordem: T-014 → (T-015 ∥ T-016) → (T-017 ∥ T-018) → T-019 → T-020 → T-021 → T-022. T-019 e T-020 são do mesmo agente e mexem em `css/ui.css`, então rodam em série.
 
