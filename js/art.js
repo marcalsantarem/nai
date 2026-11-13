@@ -538,16 +538,105 @@ export function drawCatBed(ctx, x, y, { cat = true, time = 0 } = {}) {
   if (cat) drawCat(ctx, x, y - 6, time);
 }
 
+// Gato como entidade da simulação (arquitetura, M4.1). (x, y) = project(gx, gy), no chão.
+// pose 'sleep' = enrolado na caminha (o ponto é o da caminha); 'walk' e 'sit' olham para o lado de dir.
+const CAT = '#f0a35c', CAT_DARK = '#d98842', CAT_CHEST = '#f7c48f';
+export function drawCatPose(ctx, x, y, { pose = 'sleep', dir = 'se', walk = 0, time = 0 } = {}) {
+  if (pose === 'sleep') { drawCat(ctx, x, y - 6, time); return; }
+  const f = facingOf(dir);
+  contactShadow(ctx, x, y, pose === 'walk' ? 11 : 9, 4.5);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(f, 1);
+  if (pose === 'walk') paintCatWalk(ctx, walk || 0);
+  else paintCatSit(ctx, time);
+  ctx.restore();
+}
+
+// Andando, de perfil para a direita. Passada em diagonal: dianteira de perto com a traseira de longe.
+function paintCatWalk(ctx, walk) {
+  const s = Math.sin(walk * Math.PI * 4);
+  const b = -Math.abs(s) * 0.7;
+  const liftA = Math.max(0, s) * 2, liftB = Math.max(0, -s) * 2;
+  ctx.beginPath();
+  ctx.moveTo(-9, -12 + b); ctx.quadraticCurveTo(-16, -13 + b, -14, -22 + b - s * 0.8);
+  strokeLine(ctx, CAT, 3);
+  roundRect(ctx, -6.5, -9 + b, 3, 9 - b - liftA, 1.5, CAT_DARK);
+  roundRect(ctx, 5.5, -9 + b, 3, 9 - b - liftB, 1.5, CAT_DARK);
+  ellipse(ctx, 0, -11 + b, 10, 5.5, CAT);
+  ellipse(ctx, -4, -15 + b, 1.4, 1.9, CAT_DARK);
+  ellipse(ctx, 0, -15.8 + b, 1.4, 1.9, CAT_DARK);
+  roundRect(ctx, -8.5, -9 + b, 3, 9 - b - liftB, 1.5, CAT);
+  roundRect(ctx, 3.5, -9 + b, 3, 9 - b - liftA, 1.5, CAT);
+  const hy = -15.5 + b;
+  poly(ctx, [5.6, hy - 3, 6.5, hy - 8.5, 9.2, hy - 4.2], CAT);
+  poly(ctx, [9.4, hy - 4.4, 12.4, hy - 8.3, 13.2, hy - 2.2], CAT);
+  circle(ctx, 9.5, hy, 5, CAT);
+  ellipse(ctx, 11.6, hy - 0.6, 0.9, 1.3, INK);
+  circle(ctx, 12.4, hy + 2.2, 1.3, CORAL, 0.6);
+}
+
+// Sentado, quase de frente, com o rabo enrolado nas patas.
+function paintCatSit(ctx, time) {
+  ellipse(ctx, 0, -9, 7.5, 9, CAT);
+  ellipse(ctx, 1.5, -8.5, 3.6, 5.2, CAT_CHEST);
+  ctx.beginPath();
+  ctx.moveTo(-6.5, -3); ctx.quadraticCurveTo(-5, 1.6, 5.5, 0.4);
+  strokeLine(ctx, CAT_DARK, 2.6);
+  ellipse(ctx, -2.2, -0.9, 2.4, 1.5, CAT);
+  ellipse(ctx, 3.2, -0.9, 2.4, 1.5, CAT);
+  const tilt = Math.sin(time * 0.9) * 0.4;
+  const hx = 1 + tilt, hy = -20;
+  poly(ctx, [hx - 5.2, hy - 2.5, hx - 4.6, hy - 9, hx - 1, hy - 4.8], CAT);
+  poly(ctx, [hx + 1.6, hy - 5.2, hx + 4.8, hy - 9, hx + 5.8, hy - 2.4], CAT);
+  circle(ctx, hx, hy, 6, CAT);
+  ellipse(ctx, hx - 2.1, hy - 0.4, 0.9, 1.3, INK);
+  ellipse(ctx, hx + 2.6, hy - 0.4, 0.9, 1.3, INK);
+  poly(ctx, [hx - 0.4, hy + 1.6, hx + 1.2, hy + 1.6, hx + 0.4, hy + 2.6], CORAL);
+  circle(ctx, hx - 4, hy + 2.4, 1.3, CORAL, 0.6);
+  circle(ctx, hx + 4.6, hy + 2.4, 1.3, CORAL, 0.6);
+}
+
+// Topo do gato (para o coração), a partir do y do chão.
+function catTop(e, y) {
+  return y - (e.pose === 'sit' ? 30 : e.pose === 'walk' ? 26 : 20);
+}
+
 // ---------- Personagens ----------
 // look: { skin, hair, shirt, pants, hairStyle: 'short' | 'long' | 'bun' | 'curly', apron, seated }
+
+// Clientes da casa (especificação, Clientes da casa). Pele, cabelo e blusa de Marina, Téo, Dona Lúcia
+// e Seu Jorge vêm dos retratos do mockup (04-clientes); Bia não aparece lá (cartão misterioso).
+// portraitBg = fundo do retrato no cartão. id = chave de state.regulars / entidade.regular.
+export const REGULAR_LOOKS = {
+  marina: { skin: '#e9b98f', hair: '#8a4b3a', shirt: YELLOW, pants: '#5b4a7a', hairStyle: 'long', portraitBg: '#ffd9cf' },
+  teo: { skin: '#c98d62', hair: '#2a2540', shirt: BLUE, pants: '#5b4a7a', hairStyle: 'short', portraitBg: '#cfe6f7' },
+  lucia: { skin: '#f6d2b8', hair: '#e6e1dc', shirt: '#c9b6f0', pants: '#5b4a7a', hairStyle: 'bun', portraitBg: '#e7e2fa' },
+  jorge: { skin: '#9b6a48', hair: '#f3efe3', shirt: MINT, pants: '#4a5a6a', hairStyle: 'short', portraitBg: '#cfeedd' },
+  // [Proposta] Bia: pele média, cabelo preto comprido, blusa laranja.
+  bia: { skin: '#d9a179', hair: '#1f1a24', shirt: '#ffa45c', pants: '#5b4a7a', hairStyle: 'long', portraitBg: '#ffe2c4' },
+};
+
+// [Proposta] Cliente especial (traz o recadinho): boina coral, cabelo castanho cacheado, blusa creme,
+// carta na mão no lugar do copo. Campo hat (boina) e letter (carta) só existem aqui.
+export const SPECIAL_LOOK = {
+  skin: '#e7b48c', hair: '#6b3e2e', shirt: CREAM, pants: '#5b4a7a', hairStyle: 'curly',
+  hat: CORAL, letter: true, portraitBg: '#ffe9a8',
+};
+
+// Aparência de uma entidade: cliente da casa e especial têm prioridade sobre o look sorteado.
+export function lookOf(e) {
+  if (e && e.regular && REGULAR_LOOKS[e.regular]) return REGULAR_LOOKS[e.regular];
+  if (e && e.special) return SPECIAL_LOOK;
+  return e && e.look;
+}
 
 export const LOOKS = {
   // Decisão 15: pele levemente morena, cabelo cacheado castanho-escuro.
   barista: { skin: '#e2ad84', hair: '#3b2419', shirt: MINT, pants: '#5b4a7a', hairStyle: 'curly', apron: true },
-  // Aparências dos clientes vistos no mockup:
-  marina: { skin: '#e9b98f', hair: '#8a4b3a', shirt: YELLOW, pants: '#5b4a7a', hairStyle: 'long' },
-  lucia: { skin: '#f6d2b8', hair: '#e6e1dc', shirt: '#c9b6f0', pants: '#5b4a7a', hairStyle: 'bun' },
-  teo: { skin: '#c98d62', hair: '#2a2540', shirt: BLUE, pants: '#5b4a7a', hairStyle: 'short' },
+  marina: REGULAR_LOOKS.marina,
+  lucia: REGULAR_LOOKS.lucia,
+  teo: REGULAR_LOOKS.teo,
 };
 
 // Lado para onde o personagem olha na tela: +1 direita ('se' = +gx, 'ne' = -gy), -1 esquerda.
@@ -586,6 +675,18 @@ function drawHandCup(ctx, x, y) {
   ctx.stroke();
   roundRect(ctx, x - 3.2, y - 4.6, 6.4, 2, 0.6, '#8a5a3c');
   roundRect(ctx, x - 3.6, y - 8.6, 7.2, 2, 1, CORAL);
+}
+
+// Carta do cliente especial na mão. (x, y) = centro da mão.
+function drawHandLetter(ctx, x, y) {
+  roundRectPath(ctx, x - 4.5, y - 9, 9, 6.5, 1);
+  ctx.fillStyle = CREAM;
+  ctx.fill();
+  strokeLine(ctx, INK, 0.7);
+  ctx.beginPath();
+  ctx.moveTo(x - 4.2, y - 8.7); ctx.lineTo(x, y - 5.6); ctx.lineTo(x + 4.2, y - 8.7);
+  strokeLine(ctx, INK, 0.6);
+  circle(ctx, x, y - 5.4, 1.2, CORAL);
 }
 
 // Personagem. (x, y) = centro da sombra (no chão, ou no assento se sentado).
@@ -628,13 +729,14 @@ export function drawCharacter(ctx, look, x = 0, y = 0, opts = {}) {
   const handL = b - 17.5 + (cup && f < 0 ? -2 : swing * 1.2);
   const handR = b - 17.5 + (cup && f > 0 ? -2 : -swing * 1.2);
   if (cup) drawHandCup(ctx, x + f * 10.6, f > 0 ? handR : handL);
+  else if (look.letter) drawHandLetter(ctx, x + f * 10.6, f > 0 ? handR : handL);
   circle(ctx, x - 10.6, handL, 2.4, skin);
   circle(ctx, x + 10.6, handR, 2.4, skin);
   drawHead(ctx, x, hy, look, f * 1.3);
 }
 
 // Cabeça (serve também para retratos). (x, y) = centro da cabeça. turn desloca o rosto (px) para o lado que olha.
-export function drawHead(ctx, x, y, { skin, hair, hairStyle = 'short' }, turn = 0) {
+export function drawHead(ctx, x, y, { skin, hair, hairStyle = 'short', hat = null }, turn = 0) {
   const curly = hairStyle === 'curly';
   if (curly) curls(ctx, x, y, CURLS_CROWN, hair);
   circle(ctx, x, y, 10.5, skin);
@@ -653,6 +755,12 @@ export function drawHead(ctx, x, y, { skin, hair, hairStyle = 'short' }, turn = 
   ctx.fillStyle = hair;
   ctx.fill();
   if (curly) curls(ctx, x, y, CURLS_FRINGE, hair);
+  if (hat) {
+    // boina inclinada para o lado que olha
+    ellipse(ctx, x + turn * 0.8, y - 9.5, 11.5, 5, hat);
+    ellipse(ctx, x + turn * 0.8, y - 7.6, 10, 1.6, shade(hat, 0.82));
+    circle(ctx, x + turn * 0.8 + 1, y - 14.6, 1.7, shade(hat, 0.82));
+  }
   const fx = x + turn;
   ellipse(ctx, fx - 3.6, y + 1.5, 1.3, 1.8, INK);
   ellipse(ctx, fx + 3.6, y + 1.5, 1.3, 1.8, INK);
@@ -665,6 +773,7 @@ export function drawHead(ctx, x, y, { skin, hair, hairStyle = 'short' }, turn = 
 }
 
 // Retrato do cartão do pedido (viewBox 64 do mockup), em caixa size x size a partir de (0, 0).
+// background: null = sem fundo. Nos cartões de Clientes, passe look.portraitBg (cor do mockup 04-clientes).
 export function drawPortrait(ctx, look, size = 64, { background = '#ffd9cf' } = {}) {
   const k = 15 / 10.5; // cabeça de raio 15 no retrato
   ctx.save();
@@ -674,6 +783,7 @@ export function drawPortrait(ctx, look, size = 64, { background = '#ffd9cf' } = 
     ctx.fillRect(0, 0, 64, 64);
   }
   if (look.hairStyle === 'long') roundRect(ctx, 13, 13, 38, 44, 16, look.hair);
+  else if (look.hairStyle === 'bun') ellipse(ctx, 32, 10, 7, 7, look.hair); // coque como no mockup
   else at(ctx, 32, 30, () => drawHairBack(ctx, 0, 0, look), k);
   roundRect(ctx, 12, 47, 40, 26, 13, look.shirt);
   roundRect(ctx, 27, 40, 10, 10, 3, shade(look.skin, 0.92));
@@ -728,6 +838,99 @@ export function drawHeart(ctx, x, y, p) {
   });
 }
 
+// ---------- Balão de fala e sede ----------
+
+const SPEECH_FONT = "700 10px 'Nunito', 'Segoe UI', system-ui, sans-serif";
+const SPEECH_MAX_W = 128, SPEECH_LINE = 12.5;
+
+// Quebra em até 2 linhas de SPEECH_MAX_W; o que sobrar vira reticências no fim da 2ª.
+function wrapSpeech(ctx, text) {
+  const words = String(text).trim().split(/\s+/);
+  const lines = [];
+  let cur = '';
+  for (const word of words) {
+    const next = cur ? cur + ' ' + word : word;
+    if (!cur || ctx.measureText(next).width <= SPEECH_MAX_W) { cur = next; continue; }
+    lines.push(cur);
+    cur = word;
+  }
+  if (cur) lines.push(cur);
+  if (lines.length <= 2) return lines;
+  let last = lines.slice(1).join(' ');
+  while (last.length > 1 && ctx.measureText(last + '…').width > SPEECH_MAX_W) last = last.slice(0, -1).trimEnd();
+  return [lines[0], last + '…'];
+}
+
+// Balão de fala (texto curto, até 2 linhas). (x, y) = ponta do rabicho; p = progresso 0..1
+// (entra subindo e aparecendo, sai sumindo). bounds mantém o balão dentro da cena.
+export function drawSpeechBubble(ctx, x, y, text, p = 0.5, bounds = SCENE_VIEWBOX) {
+  if (!text || p == null || p < 0 || p > 1) return;
+  const a = p < 0.1 ? p / 0.1 : p > 0.85 ? (1 - p) / 0.15 : 1;
+  const ty = y + (p < 0.1 ? (1 - p / 0.1) * 5 : 0) - (p > 0.85 ? ((p - 0.85) / 0.15) * 3 : 0);
+  ctx.font = SPEECH_FONT;
+  const lines = wrapSpeech(ctx, text);
+  let tw = 0;
+  for (const l of lines) tw = Math.max(tw, ctx.measureText(l).width);
+  const w = Math.max(40, Math.round(tw + 16)), h = lines.length * SPEECH_LINE + 8;
+  const left = Math.min(Math.max(x - w / 2, bounds.x + 4), bounds.x + bounds.w - 4 - w);
+  const top = ty - 6 - h;
+  const tx = Math.min(Math.max(x, left + 10), left + w - 10);
+  withAlpha(ctx, a, () => {
+    roundRectPath(ctx, left, top, w, h, 9);
+    ctx.fillStyle = CREAM;
+    ctx.fill();
+    strokeLine(ctx, INK, 1.6);
+    poly(ctx, [tx - 4, ty - 6.8, tx + 4, ty - 6.8, tx, ty], CREAM);
+    ctx.beginPath();
+    ctx.moveTo(tx - 4, ty - 6.1); ctx.lineTo(tx, ty + 0.6); ctx.lineTo(tx + 4, ty - 6.1);
+    strokeLine(ctx, INK, 1.6);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = INK;
+    lines.forEach((l, i) => ctx.fillText(l, left + w / 2, top + 3.5 + (i + 1) * SPEECH_LINE - 2.5));
+  });
+}
+
+let dropPath = null;
+
+// Balão redondo com gota (planta com sede). (x, y) = ponta do rabicho, logo acima da planta.
+export function drawThirstBubble(ctx, x, y, time = 0) {
+  if (!dropPath) dropPath = new Path2D(ICONS.drop.d);
+  const tip = y + Math.sin(time * 2.2) * 1.2;
+  const cy = tip - 17, r = 11;
+  ctx.beginPath();
+  ctx.arc(x, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = CREAM;
+  ctx.fill();
+  strokeLine(ctx, INK, 2);
+  poly(ctx, [x - 4, cy + r - 2.2, x + 4, cy + r - 2.2, x, tip], CREAM);
+  ctx.beginPath();
+  ctx.moveTo(x - 4, cy + r - 1.4); ctx.lineTo(x, tip + 0.8); ctx.lineTo(x + 4, cy + r - 1.4);
+  strokeLine(ctx, INK, 2);
+  const size = 15;
+  ctx.save();
+  ctx.translate(x - size / 2, cy - size / 2 - 0.5);
+  ctx.scale(size / 24, size / 24);
+  ctx.fillStyle = BLUE;
+  ctx.fill(dropPath);
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 2.4;
+  ctx.lineJoin = 'round';
+  ctx.stroke(dropPath);
+  ctx.restore();
+}
+
+// Altura do balão de sede acima do chão, pelo tipo da planta no layout (ou pelo itemId).
+const THIRST_H = { plant: 40, monstera: 60 };
+function thirstHeight(lay, e) {
+  for (const it of lay.floor || []) {
+    if (!THIRST_H[it.type]) continue;
+    const a = it.gx != null ? it : anchorOf(it.type, it.c, it.r);
+    if (Math.abs(a.gx - e.gx) < 0.4 && Math.abs(a.gy - e.gy) < 0.4) return THIRST_H[it.type];
+  }
+  return String(e.itemId || '').includes('monstera') ? THIRST_H.monstera : THIRST_H.plant;
+}
+
 // ---------- Itens da decoração ----------
 
 const ITEM = new Map(DECOR_ITEMS.map((d) => [d.id, d]));
@@ -753,7 +956,7 @@ const FLOOR_DRAW = {
   recordPlayer: (ctx, x, y, o) => drawRecordPlayer(ctx, x, y, o),
   table: (ctx, x, y) => drawTableSet(ctx, x, y),
   bookshelf: (ctx, x, y) => drawBookshelf(ctx, x, y),
-  catBed: (ctx, x, y, o) => drawCatBed(ctx, x, y, { time: o.time }),
+  catBed: (ctx, x, y, o) => drawCatBed(ctx, x, y, { cat: !o.catEntity, time: o.time }),
 };
 
 // Itens de parede: (ctx, x, y, opts) no plano local da parede, (x, y) = centro do espaço, no chão.
@@ -1030,7 +1233,9 @@ function headY(e, y) {
 export function drawScene(ctx, { time = 0, entities = [], layout, wall, floor, placing, now = null, music = false } = {}) {
   const lay = layout || initialLayout();
   const wallColors = typeof wall === 'string' || !wall ? findById(WALL_COLORS, wall, DEFAULT_WALL) : wall;
-  const opts = { time, now, music };
+  // Com entidade 'cat', a caminha é desenhada vazia e o gato vem da simulação.
+  const catEntity = entities.some((e) => e.kind === 'cat');
+  const opts = catEntity ? { time, now, music, catEntity } : { time, now, music };
   const { rugs, pieces } = floorPieces(lay);
   const def = placing && placing.type ? ITEM.get(placing.type) : null;
   const onWall = !!def && def.where === 'wall';
@@ -1058,14 +1263,23 @@ export function drawScene(ctx, { time = 0, entities = [], layout, wall, floor, p
   for (const it of items) {
     const p = project(it.gx, it.gy, it.h || 0);
     if (it.paint) it.paint(ctx, p.x, p.y, opts);
-    else drawCharacter(ctx, it.look, p.x, p.y, { pose: it.pose, dir: it.dir, walk: it.walk, time, cup: it.cup });
+    else if (it.kind === 'thirst') continue;
+    else if (it.kind === 'cat') drawCatPose(ctx, p.x, p.y, { pose: it.pose, dir: it.dir, walk: it.walk, time });
+    else drawCharacter(ctx, lookOf(it), p.x, p.y, { pose: it.pose, dir: it.dir, walk: it.walk, time, cup: it.cup });
   }
   for (const e of entities) {
-    if (!e.bubble && e.heart == null) continue;
+    if (e.kind !== 'thirst') continue;
     const p = project(e.gx, e.gy);
+    drawThirstBubble(ctx, p.x, p.y - thirstHeight(lay, e), time);
+  }
+  for (const e of entities) {
+    if (e.kind === 'thirst' || (!e.bubble && e.heart == null && !e.speech)) continue;
+    const p = project(e.gx, e.gy);
+    if (e.kind === 'cat') { if (e.heart != null) drawHeart(ctx, p.x, catTop(e, p.y), e.heart); continue; }
     const top = headY(e, p.y) - 18;
     if (e.heart != null) drawHeart(ctx, p.x, top, e.heart);
     if (e.bubble) drawOrderBubble(ctx, p.x, top, e.bubble.label);
+    if (e.speech) drawSpeechBubble(ctx, p.x, e.bubble ? top - 26 : top, e.speech.text, e.speech.p);
   }
   ctx.restore();
 }
