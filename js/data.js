@@ -1,4 +1,4 @@
-// Conteúdo e constantes do jogo (M2). Só dados, sem lógica.
+// Conteúdo e constantes do jogo (M2 e M3). Só dados, sem lógica.
 // Fonte: docs/especificacao.md (Conteúdo, Mecânicas) e docs/arquitetura.md (seções 3 e 8).
 
 const MINT = '#9ad9c2';
@@ -82,15 +82,16 @@ export const ROOM = {
   hub: { gx: 3.5, gy: 2.5 },
   exit: { gx: 2.1, gy: 4.6 }, // à esquerda do banquinho 1, fora do tapete
   barista: { gx: 2.2, gy: 0.42 },
+  // Lugares fixos do M2; a T-025 passa a derivá-los das mesas (TABLE_SEATS) e remove este campo.
   seats: [
     { id: 'stool1', gx: 3.05, gy: 3.8, dir: '+gx' },
     { id: 'stool2', gx: 4.35, gy: 3.8, dir: '-gx' },
   ],
-  // Ladrilhos (c, r) reservados: sem decoração (uso no M3).
+  // Ladrilhos (c, r) reservados: sem decoração, nem tapete (arquitetura, M3.2).
   reservedTiles: [
     [0, 0], [1, 0], [2, 0], [3, 0], [0, 1], [1, 1], [2, 1], [3, 1], // balcão
     [0, 4], [0, 5], // porta
-    [1, 3], [1, 4], [2, 2], [2, 3], [2, 4], [3, 2], // corredor
+    [1, 2], [1, 3], [1, 4], [2, 2], [2, 3], [2, 4], [3, 2], // corredor: fila Q1–Q3, ENTRY, EXIT, HUB
   ],
   // Trechos reservados da parede direita (gy = 0), em gx.
   reservedWall: [
@@ -128,3 +129,106 @@ export const BARISTA_LOOK = {
   hairStyle: 'curly',
   apron: true,
 };
+
+// ---------- Decoração (M3; arquitetura, seção M3) ----------
+// where: 'floor' | 'wall'. tab: aba da loja ('salao' | 'paredes'). short: rótulo do cartão;
+// article + short em minúsculas monta a pílula (“Escolha um lugar livre para a planta”).
+// Marcações (só presentes quando valem): waterable (pode ser regada), under (tapete, fica por baixo),
+// glow (brilho suave), seats (lugares extras), limit (máximo no jogo), clock (hora real),
+// blink (pisca devagar), notes (solta notas com a música ligada).
+// offset: deslocamento da âncora a partir do centro do ladrilho, em gx/gy [Proposta].
+// band: faixa da parede, 'high' | 'mid' (WALL_SLOTS) [Proposta].
+// short, article, offset e band são [Proposta] do AG01; nomes e preços vêm da especificação.
+export const DECOR_ITEMS = [
+  { id: 'pouf', name: 'Pufe', short: 'Pufe', article: 'o', where: 'floor', tab: 'salao', price: 14 },
+  { id: 'plant', name: 'Planta', short: 'Planta', article: 'a', where: 'floor', tab: 'salao', price: 15, waterable: true },
+  { id: 'flowerTable', name: 'Mesinha com flores', short: 'Mesinha', article: 'a', where: 'floor', tab: 'salao', price: 18 },
+  { id: 'rug', name: 'Tapete', short: 'Tapete', article: 'o', where: 'floor', tab: 'salao', price: 20, under: true, offset: [0.2, 0.3] },
+  { id: 'monstera', name: 'Costela-de-adão', short: 'Costela', article: 'a', where: 'floor', tab: 'salao', price: 25, waterable: true, offset: [-0.1, 0.05] },
+  { id: 'floorLamp', name: 'Luminária', short: 'Luminária', article: 'a', where: 'floor', tab: 'salao', price: 30, glow: true, offset: [0, -0.3] },
+  { id: 'armchair', name: 'Poltrona', short: 'Poltrona', article: 'a', where: 'floor', tab: 'salao', price: 35, offset: [0.3, 0.3] },
+  { id: 'recordPlayer', name: 'Vitrola', short: 'Vitrola', article: 'a', where: 'floor', tab: 'salao', price: 38, notes: true },
+  { id: 'table', name: 'Mesa com banquinhos', short: 'Mesa', article: 'a', where: 'floor', tab: 'salao', price: 40, seats: 2, offset: [0.2, 0.3] },
+  { id: 'bookshelf', name: 'Estante de livros', short: 'Estante', article: 'a', where: 'floor', tab: 'salao', price: 45, offset: [-0.24, -0.4] },
+  { id: 'catBed', name: 'Caminha com gatinho', short: 'Caminha', article: 'a', where: 'floor', tab: 'salao', price: 60, limit: 1, offset: [0, -0.3] },
+  { id: 'bunting', name: 'Bandeirinhas', short: 'Bandeirinhas', article: 'as', where: 'wall', tab: 'paredes', price: 16, band: 'high' },
+  { id: 'frame', name: 'Quadro', short: 'Quadro', article: 'o', where: 'wall', tab: 'paredes', price: 18, band: 'mid' },
+  { id: 'hangingPlant', name: 'Planta pendente', short: 'Pendente', article: 'a', where: 'wall', tab: 'paredes', price: 20, band: 'mid' },
+  { id: 'clock', name: 'Relógio', short: 'Relógio', article: 'o', where: 'wall', tab: 'paredes', price: 20, clock: true, band: 'mid' },
+  { id: 'stringLights', name: 'Luzinhas', short: 'Luzinhas', article: 'as', where: 'wall', tab: 'paredes', price: 22, blink: true, band: 'high' },
+  { id: 'cupShelf', name: 'Prateleira de xícaras', short: 'Prateleira', article: 'a', where: 'wall', tab: 'paredes', price: 26, band: 'mid' },
+];
+
+// Abas da loja, na ordem do mockup. 'cores' lista WALL_COLORS e FLOORS.
+export const SHOP_TABS = [
+  { id: 'salao', name: 'Salão' },
+  { id: 'paredes', name: 'Paredes' },
+  { id: 'cores', name: 'Cores' },
+];
+
+// Lugares de uma mesa, relativos à âncora (gx/gy). dir como em ROOM.seats.
+// Com a mesa inicial em (3,3) + offset, coincidem com ROOM.seats.
+export const TABLE_SEATS = [
+  { dx: -0.65, dy: 0, dir: '+gx' },
+  { dx: 0.65, dy: 0, dir: '-gx' },
+];
+
+// Mesa só nestas colunas, para os banquinhos ficarem dentro da sala [Proposta].
+export const TABLE_COLUMNS = { min: 1, max: 4 };
+
+// Espaços de parede [Proposta]. Parede 'left' (gx = 0, ao longo de gy; porta) e 'right' (gy = 0, ao longo de gx).
+// span: largura de cada posição em ladrilhos; a posição p cobre [p * span, (p + 1) * span).
+// reserved: posições sem decoração. Faixa média da direita: quadro-negro e janela (ROOM.reservedWall).
+export const WALL_SLOTS = {
+  high: { count: 2, span: 3, reserved: { left: [], right: [] } },
+  mid: { count: 6, span: 1, reserved: { left: [4, 5], right: [0, 1, 2, 3, 4, 5] } },
+};
+
+// Cores de parede, gratuitas. 'sage' é a sala atual (especificação, Cores da sala).
+// A parede esquerda é a mais escura. As demais cores são [Proposta] do AG01, na paleta do jogo.
+export const WALL_COLORS = [
+  { id: 'sage', name: 'Verde sálvia', left: { base: '#97cfbb', stripe: '#a3d6c4' }, right: { base: '#a8dcc9', stripe: '#b6e4d3' } },
+  { id: 'pink', name: 'Rosa', left: { base: '#eeb4ad', stripe: '#f3c0ba' }, right: { base: '#f7c6c0', stripe: '#fad3ce' } },
+  { id: 'sky', name: 'Azul céu', left: { base: '#a6c8e6', stripe: '#b2d1ec' }, right: { base: '#b9d8f2', stripe: '#c8e1f6' } },
+  { id: 'butter', name: 'Amarelo manteiga', left: { base: '#ecd28b', stripe: '#f1da9c' }, right: { base: '#f8e3a3', stripe: '#fbecbd' } },
+  { id: 'lilac', name: 'Lilás', left: { base: '#bdafe0', stripe: '#c7bae6' }, right: { base: '#cfc2ec', stripe: '#dbd0f2' } },
+];
+
+// Pisos, gratuitos. 'checker' é a sala atual (especificação). pattern: 'checker' (ladrilhos a/b alternados)
+// ou 'planks' (tábuas a/b). grout: linha entre ladrilhos/tábuas. Madeiras são [Proposta] do AG01.
+export const FLOORS = [
+  { id: 'lightWood', name: 'Madeira clara', pattern: 'planks', a: '#e8c596', b: '#ddb784', grout: '#c99a68' },
+  { id: 'checker', name: 'Xadrez', pattern: 'checker', a: '#ecc194', b: '#e2b181', grout: '#d9a878' },
+  { id: 'darkWood', name: 'Madeira escura', pattern: 'planks', a: '#b07a52', b: '#a06c47', grout: '#8a5a3c' },
+];
+
+export const DEFAULT_WALL = 'sage';
+export const DEFAULT_FLOOR = 'checker';
+
+// Layout inicial (arquitetura, M3.1): a composição do mockup como itens.
+// Balcão, máquina, redoma, pendentes, porta, capacho, quadro-negro e janela são fixos (art.js).
+export const INITIAL_DECOR = {
+  items: [
+    { type: 'bookshelf', c: 0, r: 2 },
+    { type: 'plant', c: 0, r: 3 },
+    { type: 'monstera', c: 5, r: 0 },
+    { type: 'rug', c: 3, r: 3 },
+    { type: 'table', c: 3, r: 3 },
+    { type: 'floorLamp', c: 5, r: 3 },
+    { type: 'armchair', c: 4, r: 4 },
+    { type: 'catBed', c: 1, r: 5 },
+  ],
+  wallItems: [
+    { type: 'bunting', wall: 'left', pos: 0 },
+    { type: 'bunting', wall: 'left', pos: 1 },
+    { type: 'stringLights', wall: 'right', pos: 0 },
+    { type: 'clock', wall: 'left', pos: 2 },
+    { type: 'frame', wall: 'left', pos: 3 },
+  ],
+  stock: {},
+  wall: DEFAULT_WALL,
+  floor: DEFAULT_FLOOR,
+};
+
+// Versão do formato salvo em 'nais-cafe-v1' [Proposta].
+export const SAVE_VERSION = 1;
