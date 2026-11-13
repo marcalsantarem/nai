@@ -171,41 +171,51 @@ export function drawChalkboard(ctx, x, y, title = "Nai's Cafe") {
 // time > 0 anima a chuva; time = 0 desenha as gotas na posição do mockup.
 const RAIN = [[12, 24], [22, 10], [30, 30], [44, 26], [57, 34], [18, 42], [48, 44]]; // início de cada gota
 export function drawWindow(ctx, x, y, time = 0) {
-  at(ctx, x, y, () => {
-    roundRect(ctx, -4, -5, 78, 4, 2, '#8a5a3c');
-    roundRect(ctx, 0, 0, 70, 66, 5, CREAM);
-    roundRect(ctx, 5, 5, 60, 56, 2, '#3d4283');
-    ctx.fillStyle = '#7a6aa8';
-    ctx.fillRect(5, 38, 60, 13);
-    ctx.fillStyle = '#f0a493';
-    ctx.fillRect(5, 51, 60, 10);
-    circle(ctx, 51, 17, 5, GLOW);
-    circle(ctx, 14, 13, 1, CREAM);
-    circle(ctx, 26, 21, 1, CREAM);
-    circle(ctx, 39, 11, 1, CREAM);
-    // chuva (recortada no vidro)
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(5, 5, 60, 56);
-    ctx.clip();
-    const fall = time ? (time * 40) % 56 : 0;
-    ctx.beginPath();
-    for (const [sx, sy] of RAIN) {
-      const yy = 5 + (sy - 5 + fall) % 56;
-      const xx = 5 + (((sx - 5 - (fall * 2) / 7) % 60) + 60) % 60;
-      ctx.moveTo(xx, yy); ctx.lineTo(xx - 2, yy + 7);
-    }
-    withAlpha(ctx, 0.5, () => strokeLine(ctx, '#ffffff', 1));
-    ctx.restore();
-    ctx.fillStyle = CREAM;
-    ctx.fillRect(33.5, 5, 3, 56);
-    ctx.beginPath();
-    ctx.moveTo(0, 0); ctx.lineTo(17, 0); ctx.quadraticCurveTo(15, 32, 0, 46); ctx.closePath();
-    ctx.moveTo(70, 0); ctx.lineTo(53, 0); ctx.quadraticCurveTo(55, 32, 70, 46); ctx.closePath();
-    ctx.fillStyle = CORAL;
-    ctx.fill();
-    roundRect(ctx, -5, 64, 80, 5, 2, CREAM);
-  });
+  at(ctx, x, y, () => { paintWindowBack(ctx); paintWindowRain(ctx, time); paintWindowFront(ctx); });
+}
+
+// Partes da janela (plano local da moldura): fundo e céu; chuva (a única parte animada); caixilho, cortinas e peitoril.
+// Separadas para o cache de camadas da cena (drawScene) guardar o que não se mexe.
+function paintWindowBack(ctx) {
+  roundRect(ctx, -4, -5, 78, 4, 2, '#8a5a3c');
+  roundRect(ctx, 0, 0, 70, 66, 5, CREAM);
+  roundRect(ctx, 5, 5, 60, 56, 2, '#3d4283');
+  ctx.fillStyle = '#7a6aa8';
+  ctx.fillRect(5, 38, 60, 13);
+  ctx.fillStyle = '#f0a493';
+  ctx.fillRect(5, 51, 60, 10);
+  circle(ctx, 51, 17, 5, GLOW);
+  circle(ctx, 14, 13, 1, CREAM);
+  circle(ctx, 26, 21, 1, CREAM);
+  circle(ctx, 39, 11, 1, CREAM);
+}
+
+function paintWindowRain(ctx, time) {
+  // chuva (recortada no vidro)
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(5, 5, 60, 56);
+  ctx.clip();
+  const fall = time ? (time * 40) % 56 : 0;
+  ctx.beginPath();
+  for (const [sx, sy] of RAIN) {
+    const yy = 5 + (sy - 5 + fall) % 56;
+    const xx = 5 + (((sx - 5 - (fall * 2) / 7) % 60) + 60) % 60;
+    ctx.moveTo(xx, yy); ctx.lineTo(xx - 2, yy + 7);
+  }
+  withAlpha(ctx, 0.5, () => strokeLine(ctx, '#ffffff', 1));
+  ctx.restore();
+}
+
+function paintWindowFront(ctx) {
+  ctx.fillStyle = CREAM;
+  ctx.fillRect(33.5, 5, 3, 56);
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(17, 0); ctx.quadraticCurveTo(15, 32, 0, 46); ctx.closePath();
+  ctx.moveTo(70, 0); ctx.lineTo(53, 0); ctx.quadraticCurveTo(55, 32, 70, 46); ctx.closePath();
+  ctx.fillStyle = CORAL;
+  ctx.fill();
+  roundRect(ctx, -5, 64, 80, 5, 2, CREAM);
 }
 
 // Cordão de luzinhas. (x, y) = ponta esquerda do cordão. time > 0 faz as luzes piscarem de leve.
@@ -235,13 +245,19 @@ function drawLeftWall(ctx, colors) {
   ctx.restore();
 }
 
-function drawRightWall(ctx, time, colors) {
-  wall(ctx, 'right', colors ? { ...WALL_RIGHT, ...colors.right } : WALL_RIGHT);
+// part (cache de camadas): 'all'; 'back' = parede, quadro-negro e fundo da janela; 'rain'; 'front' = caixilho e cortinas.
+function drawRightWall(ctx, time, colors, part = 'all') {
+  const all = part === 'all', back = all || part === 'back';
+  if (back) wall(ctx, 'right', colors ? { ...WALL_RIGHT, ...colors.right } : WALL_RIGHT);
   ctx.save();
   wallTransform(ctx, 'right');
   // Afastados do mockup (18 e 100) para abrir o espaço médio entre eles (decisão 30; ROOM.reservedWall).
-  drawChalkboard(ctx, 6, -112, "Nai's Cafe");
-  drawWindow(ctx, 105, -114, time);
+  if (back) drawChalkboard(ctx, 6, -112, "Nai's Cafe");
+  at(ctx, 105, -114, () => { // = drawWindow(ctx, 105, -114, time), por partes
+    if (back) paintWindowBack(ctx);
+    if (all || part === 'rain') paintWindowRain(ctx, time);
+    if (all || part === 'front') paintWindowFront(ctx);
+  });
   ctx.restore();
 }
 
@@ -1117,11 +1133,16 @@ export function drawFloorThumb(ctx, floor, size) {
 
 // Fixos (não são itens): balcão com máquina, redoma e potes; luminárias pendentes sobre o balcão
 // (profundidade logo após o balcão). A barista vem como entidade da simulação (arquitetura, seção 5).
+// sprite: peça parada, desenhada de um canvas em cache (spriteOf).
+const paintPendant = (ctx, x, y) => drawPendantLamp(ctx, x, y);
 const FIXED = [
-  { gx: 2.25, gy: 1.3, paint: (ctx, x, y) => drawCounter(ctx, x, y) },
-  { gx: 1.5, gy: 1.3, h: 75, depth: 3.56, paint: (ctx, x, y, o) => drawPendantLamp(ctx, x, y, o.time) },
-  { gx: 2.9, gy: 1.3, h: 75, depth: 3.57, paint: (ctx, x, y, o) => drawPendantLamp(ctx, x, y, o.time) },
+  { gx: 2.25, gy: 1.3, sprite: true, paint: (ctx, x, y) => drawCounter(ctx, x, y) },
+  { gx: 1.5, gy: 1.3, h: 75, depth: 3.56, sprite: true, paint: paintPendant },
+  { gx: 2.9, gy: 1.3, h: 75, depth: 3.57, sprite: true, paint: paintPendant },
 ];
+
+// Itens de chão que não mudam com o tempo nem com opts (os demais são desenhados a cada quadro).
+const STATIC_FLOOR = new Set(['pouf', 'plant', 'flowerTable', 'monstera', 'armchair', 'bookshelf']);
 
 // Ajuste de profundidade por tipo: a estante é longa em gy (1,2 ladrilho) e fina em gx;
 // ordenar pelo canto do fundo a mantém atrás do que está à frente dela.
@@ -1143,10 +1164,10 @@ function floorPieces(layout) {
     const { gx, gy } = it.gx != null ? it : anchorOf(it.type, it.c, it.r);
     if (it.type === 'rug') rugs.push(project(gx, gy));
     else if (it.type === 'table') {
-      pieces.push({ gx: gx - STOOL_DX, gy, paint: paintStool });
-      pieces.push({ gx, gy, paint: paintTable });
-      pieces.push({ gx: gx + STOOL_DX, gy, paint: paintStool });
-    } else pieces.push({ gx, gy, depth: depthFor(it.type, gx, gy), paint: fn });
+      pieces.push({ gx: gx - STOOL_DX, gy, sprite: true, paint: paintStool });
+      pieces.push({ gx, gy, sprite: true, paint: paintTable });
+      pieces.push({ gx: gx + STOOL_DX, gy, sprite: true, paint: paintStool });
+    } else pieces.push({ gx, gy, depth: depthFor(it.type, gx, gy), sprite: STATIC_FLOOR.has(it.type), paint: fn });
   }
   cached = { rugs, pieces: FIXED.concat(pieces) };
   piecesCache.set(layout, cached);
@@ -1205,7 +1226,8 @@ function drawWallSpots(ctx, placing, opts) {
 
 // Quadros sem variant alternam paisagem e quadrinho azul pela ordem no layout (decisão 27).
 const FRAME_VARIANTS = [null, 'small'];
-function drawWallItems(ctx, items, opts) {
+// keep(type) opcional filtra os tipos desenhados (cache de camadas); a alternância dos quadros não muda.
+function drawWallItems(ctx, items, opts, keep = null) {
   for (const side of ['left', 'right']) {
     ctx.save();
     wallTransform(ctx, side);
@@ -1214,10 +1236,132 @@ function drawWallItems(ctx, items, opts) {
       const fn = WALL_DRAW[it.type];
       if (!fn) continue;
       const variant = it.type === 'frame' ? it.variant || FRAME_VARIANTS[frames++ % FRAME_VARIANTS.length] : null;
-      if (it.wall === side) fn(ctx, slotX(side, it.band || bandOf(it.type), it.pos), 0, variant ? { ...opts, variant } : opts);
+      if (it.wall === side && (!keep || keep(it.type))) fn(ctx, slotX(side, it.band || bandOf(it.type), it.pos), 0, variant ? { ...opts, variant } : opts);
     }
     ctx.restore();
   }
+}
+
+// ---------- Cache de camadas ----------
+// O que não se mexe entre quadros fica em dois canvas fora da tela, do tamanho do canvas da cena e com a
+// mesma transformação. A = piso, paredes, porta, quadro-negro e fundo da janela; entre A e B, a chuva;
+// B = frente da janela, itens de parede parados, luz da janela, capacho e tapetes; depois de B, os itens
+// de parede animados (LIVE_WALL), que não encostam em nada de B (espaços de parede separados, longe do chão).
+// Refeitas só quando mudam o tamanho do canvas, a transformação, o layout, a parede ou o piso.
+// Compor camadas transparentes dá o mesmo resultado que desenhar direto (source-over é associativo),
+// a menos de arredondamento de 1/255 nas bordas suavizadas.
+const LIVE_WALL = new Set(['stringLights', 'clock']);
+const isLiveWall = (type) => LIVE_WALL.has(type);
+const isStaticWall = (type) => !LIVE_WALL.has(type);
+const layerCache = new WeakMap(); // canvas da cena → { key, a, b, sprites }
+
+function sceneLayers(ctx, floor, wallColors, lay) {
+  const cv = ctx.canvas;
+  if (typeof document === 'undefined' || !cv || typeof ctx.getTransform !== 'function') return null;
+  const m = ctx.getTransform();
+  const key = [cv.width, cv.height, m.a, m.b, m.c, m.d, m.e, m.f, floor, wallColors, lay];
+  let c = layerCache.get(cv);
+  if (c && c.key.every((v, i) => v === key[i])) return c;
+  if (!c) {
+    c = { a: document.createElement('canvas'), b: document.createElement('canvas'), sprites: new WeakMap() };
+    layerCache.set(cv, c);
+  }
+  // Tamanho ou transformação novos invalidam também os sprites das peças.
+  if (!c.key || key.slice(0, 8).some((v, i) => v !== c.key[i])) { c.sprites = new WeakMap(); c.m = m; }
+  c.key = key;
+  paintLayer(c.a, cv, m, (g) => {
+    drawFloor(g, floor);
+    drawLeftWall(g, wallColors);
+    drawRightWall(g, 0, wallColors, 'back');
+  });
+  paintLayer(c.b, cv, m, (g) => {
+    drawRightWall(g, 0, wallColors, 'front');
+    drawWallItems(g, lay.wall || [], {}, isStaticWall);
+    drawWindowLight(g);
+    drawDoorMat(g, 0.12, 4.35);
+    for (const p of floorPieces(lay).rugs) drawRoundRug(g, p.x, p.y);
+  });
+  return c;
+}
+
+function paintLayer(layer, cv, m, paint) {
+  if (layer.width !== cv.width || layer.height !== cv.height) { layer.width = cv.width; layer.height = cv.height; }
+  const g = layer.getContext('2d');
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.clearRect(0, 0, layer.width, layer.height);
+  g.setTransform(m);
+  paint(g);
+}
+
+function blit(ctx, layer, x = 0, y = 0) {
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(layer, x, y);
+  ctx.restore();
+}
+
+// Sprites das peças paradas (sprite: true): cada peça num canvas pequeno, desenhada com a transformação
+// da cena deslocada por um número inteiro de pixels; colada no mesmo lugar, dá os mesmos pixels.
+// A caixa de cada desenho (em unidades da cena, relativa ao ponto de apoio) é medida uma vez por função,
+// num canvas de apoio; desenho maior que a área de medida fica sem sprite (desenhado direto).
+const BOUNDS_K = 2, BOUNDS_W = 640, BOUNDS_H = 640, BOUNDS_OX = 320, BOUNDS_OY = 440;
+const boundsCache = new Map(); // paint → [x0, y0, x1, y1] | null
+let boundsCv = null;
+function boundsOf(paint) {
+  if (boundsCache.has(paint)) return boundsCache.get(paint);
+  if (!boundsCv) { boundsCv = document.createElement('canvas'); boundsCv.width = BOUNDS_W; boundsCv.height = BOUNDS_H; }
+  const g = boundsCv.getContext('2d', { willReadFrequently: true });
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.clearRect(0, 0, BOUNDS_W, BOUNDS_H);
+  g.setTransform(BOUNDS_K, 0, 0, BOUNDS_K, BOUNDS_OX, BOUNDS_OY);
+  paint(g, 0, 0, {});
+  const d = g.getImageData(0, 0, BOUNDS_W, BOUNDS_H).data;
+  let x0 = BOUNDS_W, y0 = BOUNDS_H, x1 = -1, y1 = -1;
+  for (let y = 0; y < BOUNDS_H; y++) {
+    for (let x = 0; x < BOUNDS_W; x++) {
+      if (!d[(y * BOUNDS_W + x) * 4 + 3]) continue;
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      if (y > y1) y1 = y;
+    }
+  }
+  let b = null;
+  if (x1 >= 0 && x0 > 0 && y0 > 0 && x1 < BOUNDS_W - 1 && y1 < BOUNDS_H - 1) {
+    // pixels → unidades da cena, com 2 unidades de folga
+    b = [(x0 - BOUNDS_OX) / BOUNDS_K - 2, (y0 - BOUNDS_OY) / BOUNDS_K - 2, (x1 + 1 - BOUNDS_OX) / BOUNDS_K + 2, (y1 + 1 - BOUNDS_OY) / BOUNDS_K + 2];
+  }
+  boundsCache.set(paint, b);
+  return b;
+}
+
+// Desenha a peça pelo sprite (criado na primeira vez). Devolve false se não der (sem caixa).
+function drawSprite(ctx, layers, piece, x, y) {
+  let s = layers.sprites.get(piece);
+  if (s === undefined) {
+    s = null;
+    const b = boundsOf(piece.paint);
+    if (b) {
+      const m = layers.m;
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const [u, v] of [[b[0], b[1]], [b[2], b[1]], [b[0], b[3]], [b[2], b[3]]]) {
+        const dx = m.a * (x + u) + m.c * (y + v) + m.e, dy = m.b * (x + u) + m.d * (y + v) + m.f;
+        x0 = Math.min(x0, dx); x1 = Math.max(x1, dx); y0 = Math.min(y0, dy); y1 = Math.max(y1, dy);
+      }
+      const ox = Math.floor(x0) - 1, oy = Math.floor(y0) - 1;
+      const cv = document.createElement('canvas');
+      cv.width = Math.ceil(x1) + 1 - ox;
+      cv.height = Math.ceil(y1) + 1 - oy;
+      const g = cv.getContext('2d');
+      g.setTransform(m.a, m.b, m.c, m.d, m.e - ox, m.f - oy);
+      piece.paint(g, x, y, {});
+      s = { cv, ox, oy };
+    }
+    layers.sprites.set(piece, s);
+  }
+  if (!s) return false;
+  blit(ctx, s.cv, s.ox, s.oy);
+  return true;
 }
 
 // Centro da cabeça de uma entidade, a partir do y de project(gx, gy).
@@ -1239,15 +1383,30 @@ export function drawScene(ctx, { time = 0, entities = [], layout, wall, floor, p
   const { rugs, pieces } = floorPieces(lay);
   const def = placing && placing.type ? ITEM.get(placing.type) : null;
   const onWall = !!def && def.where === 'wall';
+  const floorDef = typeof floor === 'string' || !floor ? findById(FLOORS, floor, DEFAULT_FLOOR) : floor;
   ctx.save();
-  drawFloor(ctx, floor);
-  drawLeftWall(ctx, wallColors);
-  drawRightWall(ctx, time, wallColors);
-  drawWallItems(ctx, lay.wall || [], opts);
-  if (onWall) drawWallSpots(ctx, placing, opts);
-  drawWindowLight(ctx);
-  drawDoorMat(ctx, 0.12, 4.35);
-  for (const p of rugs) drawRoundRug(ctx, p.x, p.y);
+  // Camadas em cache (sceneLayers); sem DOM, tudo direto. Colocando um item, a camada B não serve
+  // (os destaques entram entre os itens de parede e o chão) e essa parte é desenhada direto.
+  const layers = sceneLayers(ctx, floorDef, wallColors, lay);
+  if (layers) {
+    blit(ctx, layers.a);
+    drawRightWall(ctx, time, wallColors, 'rain');
+  } else {
+    drawFloor(ctx, floorDef);
+    drawLeftWall(ctx, wallColors);
+    drawRightWall(ctx, time, wallColors);
+  }
+  if (layers && !def) {
+    blit(ctx, layers.b);
+    drawWallItems(ctx, lay.wall || [], opts, isLiveWall);
+  } else {
+    if (layers) drawRightWall(ctx, time, wallColors, 'front');
+    drawWallItems(ctx, lay.wall || [], opts);
+    if (onWall) drawWallSpots(ctx, placing, opts);
+    drawWindowLight(ctx);
+    drawDoorMat(ctx, 0.12, 4.35);
+    for (const p of rugs) drawRoundRug(ctx, p.x, p.y);
+  }
   let list = pieces;
   if (def && !onWall) {
     drawFloorSpots(ctx, placing);
@@ -1262,7 +1421,7 @@ export function drawScene(ctx, { time = 0, entities = [], layout, wall, floor, p
   const items = sortByDepth(entities.length ? list.concat(entities) : list);
   for (const it of items) {
     const p = project(it.gx, it.gy, it.h || 0);
-    if (it.paint) it.paint(ctx, p.x, p.y, opts);
+    if (it.paint) { if (!(it.sprite && layers && drawSprite(ctx, layers, it, p.x, p.y))) it.paint(ctx, p.x, p.y, opts); }
     else if (it.kind === 'thirst') continue;
     else if (it.kind === 'cat') drawCatPose(ctx, p.x, p.y, { pose: it.pose, dir: it.dir, walk: it.walk, time });
     else drawCharacter(ctx, lookOf(it), p.x, p.y, { pose: it.pose, dir: it.dir, walk: it.walk, time, cup: it.cup });
