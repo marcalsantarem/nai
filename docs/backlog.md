@@ -77,7 +77,7 @@ Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 →
 | T-058 | Setters oficiais de ajustes e nome no estado | P | AG01 (Gameplay) | feita (BRF-043) |
 | T-043 | Validação do M4: 8 receitas liberam nos marcos, clientes da casa, rituais, áudio e telas novas | M | AG06 (QA) | feita (BRF-044): passa com ressalvas, ver docs/qa/qa-M4.md |
 | T-056 | Resto do D1 (tipos sem protótipo em `decor.js` e `regulars`) e impedir mesa cujos lugares fiquem sem acesso | P | AG01 (Gameplay) | feita (BRF-037) |
-| T-044 | Fechamento do M4: versão 0.4.0, PR, tag v0.4.0 | P | AG00 | em andamento (versão 0.4.0 na dev; aguarda PR e tag) |
+| T-044 | Fechamento do M4: versão 0.4.0, PR, tag v0.4.0 | P | AG00 | feita (PR #4, tag v0.4.0) |
 
 Ordem: (T-033 ∥ T-038) → (T-034 ∥ T-037) → (T-035 ∥ T-036) → T-039 → T-040 → T-041 → T-042 → T-043 → T-044.
 
