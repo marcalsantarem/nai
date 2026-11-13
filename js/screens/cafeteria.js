@@ -5,6 +5,7 @@ import { RECIPES } from '../data.js';
 import { project } from '../iso.js';
 import decor from '../decor.js';
 import { sfx } from '../audio.js';
+import { openSettings } from './ajustes.js';
 
 // Barra do M2: conta as servidas até o primeiro marco e para ali (decisões 20 e 23).
 
@@ -43,7 +44,7 @@ function template() {
   <header class="top">
     <div class="level"><span class="level__label">nível</span><span class="level__value" data-ref="level"></span></div>
     <div class="top__info">
-      <h1 class="title-screen">Nai's Cafe</h1>
+      <h1 class="title-screen top__name" data-ref="name"></h1>
       <div class="progress" role="img" data-ref="progress"><div class="progress__fill"></div></div>
       <p class="caption" data-ref="caption"></p>
     </div>
@@ -87,6 +88,7 @@ let front = null; // primeiro cliente parado em Q1, ou null
 let time = 0;
 let view = null; // { cssW, cssH, dpr, scale }
 let layout = null; // decor.sceneLayout(), refeito no evento 'decor'
+let closeSettings = null; // painel de Ajustes aberto (T-042)
 
 // Tamanho da cena: a sala ocupa a largura da coluna cortando 18 px de cada ponta
 // (a 390 px dá os 440 × 390 do mockup); reduz se não couber na altura.
@@ -107,6 +109,7 @@ function layoutCanvas() {
   canvas.height = Math.round(cssH * dpr);
   view = { cssW, cssH, dpr, scale };
   fitOrderTitle();
+  fitName();
   draw(); // redesenha já: mudar o tamanho limpa o canvas
 }
 
@@ -136,8 +139,70 @@ function renderTop() {
     ? `Progresso: ${p.done} de ${p.span} bebidas para a próxima receita`
     : 'Todas as receitas liberadas');
   refs.caption.textContent = p.caption;
+  if (refs.name.textContent !== s.name) { refs.name.textContent = s.name; fitName(); }
   refs.coins.textContent = String(s.coins);
   refs.coinsPill.setAttribute('aria-label', `${s.coins} moedas`);
+}
+
+// Nome longo (até 24 caracteres): reduz a fonte até caber; no limite, reticências.
+const NAME_MIN_PX = 14;
+function fitName() {
+  if (!refs) return;
+  const t = refs.name;
+  t.style.fontSize = '';
+  let size = parseFloat(getComputedStyle(t).fontSize);
+  while (t.scrollWidth > t.clientWidth + 0.5 && size > NAME_MIN_PX) {
+    size -= 1;
+    t.style.fontSize = `${size}px`;
+  }
+}
+
+// ---------- Ganho de moedas (T-057): "+N" que sobe e some, pulinho na pílula ----------
+
+const GAIN_EDGE = 24; // px: distância mínima do centro do "+N" à borda da tela
+const GAIN_MS = 1200; // reserva: remove mesmo se animationend não vier
+
+// Mostra "+N" com o centro em (x, y), em px relativos à tela.
+function showGain(n, x, y) {
+  if (!root || !(n > 0)) return;
+  const el = document.createElement('span');
+  el.className = 'coin-gain';
+  el.setAttribute('aria-hidden', 'true');
+  el.textContent = `+${n}`;
+  const w = root.clientWidth;
+  el.style.left = `${Math.max(GAIN_EDGE, Math.min(w - GAIN_EDGE, x))}px`; // não sai da coluna
+  el.style.top = `${y}px`;
+  const host = root;
+  host.append(el);
+  const done = () => el.remove();
+  el.addEventListener('animationend', done, { once: true });
+  setTimeout(done, GAIN_MS);
+  bumpPill();
+}
+
+function bumpPill() {
+  const pill = refs && refs.coinsPill;
+  if (!pill) return;
+  pill.classList.remove('is-bump');
+  void pill.offsetWidth; // reinicia a animação
+  pill.classList.add('is-bump');
+}
+
+// "+N" sobre a pílula de moedas (entrega).
+function showGainAtPill(n) {
+  if (!root || !refs) return;
+  const r = refs.coinsPill.getBoundingClientRect();
+  const o = root.getBoundingClientRect();
+  showGain(n, r.left + r.width / 2 - o.left, r.top - o.top); // nasce na borda de cima e sobe
+}
+
+// "+N" num ponto da cena, em unidades do viewBox (planta regada).
+function showGainAtScene(n, vx, vy) {
+  if (!root || !art || !view) return;
+  const vb = art.SCENE_VIEWBOX;
+  const c = canvas.getBoundingClientRect();
+  const o = root.getBoundingClientRect();
+  showGain(n, c.left - o.left + (vx - vb.x) * view.scale, c.top - o.top + (vy - vb.y) * view.scale);
 }
 
 // ---------- Cartão do pedido ----------
@@ -236,7 +301,12 @@ function onSceneClick(e) {
   }
   if (plant) {
     // moedas entram pelo estado (pílula) com o mesmo som da entrega
-    if (game.sim.water(plant.itemId).ok) sfx('coins');
+    const res = game.sim.water(plant.itemId);
+    if (res.ok) {
+      sfx('coins');
+      const p = project(plant.gx, plant.gy);
+      showGainAtScene(res.coins, p.x, p.y - thirstHeight(plant) - 17);
+    }
     return;
   }
   const cat = ents.find((t) => t.kind === 'cat');
@@ -248,6 +318,13 @@ function onSceneClick(e) {
 
 function onClick(e) {
   if (e.target.closest('[data-action="prepare"]')) { openOrder(); return; }
+  if (e.target.closest('[data-action="settings"]')) {
+    if (!closeSettings) {
+      closeSettings = openSettings(root, { state: game.state, onName: renderTop, onClose: () => { closeSettings = null; } });
+    }
+    return;
+  }
+  if (e.target.closest('.settings')) return; // toques dentro do painel
   const item = e.target.closest('.nav__item');
   if (!item) return;
   // Café já está ativo.
@@ -289,7 +366,11 @@ export default {
       }),
     ];
 
-    document.fonts.ready.then(() => { fontsReady = true; fitOrderTitle(); });
+    // Entrega no Preparo: o "+N" aparece aqui, sobre a pílula, ao voltar.
+    const gain = Math.round(Number(context.params && context.params.gain) || 0);
+    if (gain > 0) requestAnimationFrame(() => { if (root === el) showGainAtPill(gain); });
+
+    document.fonts.ready.then(() => { fontsReady = true; fitOrderTitle(); fitName(); });
     // art.js é do AG03; se ainda não existir, a cena fica vazia sem erro.
     import('../art.js')
       .then((mod) => {
@@ -301,6 +382,7 @@ export default {
       .catch(() => { console.info('art.js indisponível: cena vazia.'); });
   },
   exit() {
+    if (closeSettings) closeSettings();
     for (const u of unsubs) u();
     unsubs = [];
     if (resizeObs) resizeObs.disconnect();

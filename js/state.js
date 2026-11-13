@@ -262,6 +262,30 @@ export function setDecor(patch = {}, change = 'set') {
   if (changed) send({ type: 'decor', change });
 }
 
+// Ajustes (T-058): mescla só booleanos de music/rain. Evento { type: 'settings', value, changed }.
+export function setSettings(patch = {}) {
+  if (!isObj(state.settings)) state.settings = { music: true, rain: true };
+  const changed = [];
+  for (const k of ['music', 'rain']) {
+    if (isObj(patch) && typeof patch[k] === 'boolean' && state.settings[k] !== patch[k]) {
+      state.settings[k] = patch[k];
+      changed.push(k);
+    }
+  }
+  if (changed.length) send({ type: 'settings', value: { ...state.settings }, changed });
+  return { ...state.settings };
+}
+
+// Nome da cafeteria (decisão 16): corta em 24; vazio = DEFAULT_NAME. Evento { type: 'name', value }.
+export function setName(text) {
+  const v = cleanName(text) || DEFAULT_NAME;
+  if (v !== state.name) {
+    state.name = v;
+    emit('name', 0);
+  }
+  return state.name;
+}
+
 export function subscribe(fn) {
   listeners.add(fn);
   return () => listeners.delete(fn);

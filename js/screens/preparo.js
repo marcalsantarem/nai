@@ -242,9 +242,9 @@ function back() {
 function deliver() {
   if (leaving || left() > 0) return;
   leaving = true;
-  game.sim.deliver({ art });
+  const paid = game.sim.deliver({ art });
   sfx('coins');
-  game.go('cafeteria');
+  game.go('cafeteria', { gain: paid ? paid.total : 0 }); // "+N" na Cafeteria (T-057)
 }
 
 function onClick(e) {

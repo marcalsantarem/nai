@@ -860,3 +860,129 @@ body:has(.recipes) .backdrop__circle { top: 140px; }
   color: var(--ink);
 }
 .recipe__link { width: 12px; height: var(--line); flex: none; background: var(--ink); }
+
+/* ---------- Ganho de moedas (T-057) ---------- */
+/* "+N" amarelo com contorno Tinta (sombras sem desfoque), sobe e some em 0,9 s. */
+.coin-gain {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 24px;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--yellow);
+  text-shadow:
+    2px 0 0 var(--ink), -2px 0 0 var(--ink), 0 2px 0 var(--ink), 0 -2px 0 var(--ink),
+    2px 2px 0 var(--ink), -2px 2px 0 var(--ink), 2px -2px 0 var(--ink), -2px -2px 0 var(--ink),
+    0 4px 0 var(--ink);
+  animation: coin-gain 0.9s ease-out forwards;
+}
+@keyframes coin-gain {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  15% { opacity: 1; transform: translate(-50%, -70%) scale(1.1); }
+  30% { transform: translate(-50%, -85%) scale(1); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -190%) scale(1); }
+}
+.pill.is-bump { animation: pill-bump 0.3s ease-out; }
+@keyframes pill-bump { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .coin-gain { animation-name: coin-gain-fade; }
+  .pill.is-bump { animation: none; }
+}
+@keyframes coin-gain-fade { 0%, 100% { opacity: 0; } 15%, 70% { opacity: 1; } }
+
+/* ---------- Ajustes (T-042) ---------- */
+.top__name { line-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Painel que desce do topo (o teclado do iPhone sobe por baixo sem cobrir o campo). */
+.settings {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: color-mix(in srgb, var(--night) 0%, transparent);
+  transition: background-color 200ms;
+}
+.settings.is-open { background: color-mix(in srgb, var(--night) 55%, transparent); }
+.settings__panel {
+  position: absolute;
+  top: 0;
+  left: var(--gutter);
+  right: var(--gutter);
+  padding: 14px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transform: translateY(calc(-100% - 80px));
+  transition: transform 240ms ease-out;
+}
+.settings.is-open .settings__panel { transform: none; }
+.settings__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.settings__head .icon-btn { color: var(--ink); }
+
+.set-row {
+  min-height: 52px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid color-mix(in srgb, var(--ink) 15%, transparent);
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.switch {
+  position: relative;
+  width: 56px;
+  height: 32px;
+  flex: none;
+  background: var(--disabled);
+  border: var(--outline);
+  border-radius: var(--radius-round);
+  transition: background-color 150ms;
+}
+.switch__knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: var(--cream);
+  border: var(--outline);
+  border-radius: 50%;
+  transition: transform 150ms;
+}
+.set-row[aria-checked="true"] .switch { background: var(--green); }
+.set-row[aria-checked="true"] .switch__knob { transform: translateX(24px); }
+
+.set-field { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
+.set-field__input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  background: var(--cream);
+  border: var(--outline);
+  border-radius: var(--radius-button);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px; /* ≥ 16 px: o Safari não amplia ao focar */
+  color: var(--ink);
+  -webkit-user-select: text;
+  user-select: text;
+}
+.set-field__input:focus { outline: none; box-shadow: 0 0 0 3px var(--yellow); }
+.set-reset { margin-top: 6px; width: 100%; background: var(--coral); }
+.set-reset.is-armed { background: var(--yellow); font-size: 16px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .settings, .settings__panel, .switch, .switch__knob { transition: none; }
+}

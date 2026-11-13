@@ -73,7 +73,9 @@ Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 →
 | T-039 | Toques na cena: planta com sede rega, gato solta coração | P | AG02 (UI) | feita (BRF-038) |
 | T-040 | Tela Clientes da casa: cartões, selo de visitas, “Cliente misterioso” tracejado, “N de 5” | M | AG02 (UI) | feita (BRF-039) |
 | T-041 | Tela Cardápio: receitas com preço e passos; bloqueadas tracejadas com “Libera com N bebidas” | M | AG02 (UI) | feita (BRF-040) |
-| T-042 | Ajustes: painel deslizante, música e chuva, nome da cafeteria editável (decisão 16), “Recomeçar do zero” em dois toques | M | AG02 (UI) | a fazer |
+| T-042 | Ajustes: painel deslizante, música e chuva, nome da cafeteria editável (decisão 16), “Recomeçar do zero” em dois toques | M | AG02 (UI) | feita (BRF-042) |
+| T-057 | Animação “+N” ao ganhar moedas (entrega e regar) | P | AG02 (UI) | feita (BRF-041) |
+| T-058 | Setters oficiais de ajustes e nome no estado | P | AG01 (Gameplay) | feita (BRF-043) |
 | T-043 | Validação do M4: 8 receitas liberam nos marcos, clientes da casa, rituais, áudio e telas novas | M | AG06 (QA) | a fazer |
 | T-056 | Resto do D1 (tipos sem protótipo em `decor.js` e `regulars`) e impedir mesa cujos lugares fiquem sem acesso | P | AG01 (Gameplay) | feita (BRF-037) |
 | T-044 | Fechamento do M4: versão 0.4.0, PR, tag v0.4.0 | P | AG00 | a fazer |
