@@ -1,6 +1,8 @@
 // Simulação do ciclo do cliente (M2; lugares das mesas do layout no M3). Não desenha nem toca no DOM.
 // Só avança por update(dt) e sorteia com o rng recebido (roda em Node).
-import { RECIPES, CYCLE, ROOM, CUSTOMER_NAMES, CUSTOMER_LOOKS, BARISTA_LOOK } from './data.js';
+import {
+  RECIPES, CYCLE, ROOM, CUSTOMER_NAMES, CUSTOMER_LOOKS, BARISTA_LOOK, DECOR_ITEMS, TABLE_SEATS,
+} from './data.js';
 import * as stateModule from './state.js';
 import sharedDecor, { createDecor } from './decor.js';
 
@@ -11,6 +13,98 @@ const SEAT_DIR = { '+gx': 'se', '-gx': 'nw', '+gy': 'sw', '-gy': 'ne' };
 // Caminho da chegada: DOOR → ENTRY → Q3 → Q2 → Q1. Índice da vaga n (0 = Q1) no caminho.
 const LINE = [ROOM.door, ROOM.entry, ROOM.queue[2], ROOM.queue[1], ROOM.queue[0]];
 const lineStop = (slot) => LINE.length - 1 - slot;
+
+// ---------- Caminhos na grade (T-055) ----------
+// Bloqueia o ladrilho de cada móvel (tapete não) e, na mesa, os ladrilhos dos banquinhos.
+// O corredor (fila, ENTRY, EXIT, HUB) é reservado: nunca bloqueia.
+const GRID = 6;
+const ITEM = Object.assign(Object.create(null), Object.fromEntries(DECOR_ITEMS.map((d) => [d.id, d])));
+const MARGIN = 0.01; // folga ao testar segmento x ladrilho
+const tileOf = (v) => Math.min(GRID - 1, Math.max(0, Math.floor(v)));
+const tkey = (c, r) => c * GRID + r;
+
+function blockedTiles(floor) {
+  const set = new Set();
+  for (const it of floor) {
+    const d = ITEM[it.type];
+    if (!d || d.under || !Number.isInteger(it.c) || !Number.isInteger(it.r)) continue;
+    set.add(tkey(it.c, it.r));
+    if (d.seats) {
+      for (const s of TABLE_SEATS.slice(0, d.seats)) set.add(tkey(tileOf(it.gx + s.dx), tileOf(it.gy + s.dy)));
+    }
+  }
+  return set;
+}
+
+// Segmento a→b cruza o ladrilho (c, r)? (Liang–Barsky no quadrado com folga.)
+function hitsTile(a, b, c, r) {
+  const dx = b.gx - a.gx, dy = b.gy - a.gy;
+  let t0 = 0, t1 = 1;
+  const clip = (p, q) => {
+    if (Math.abs(p) < 1e-12) return q >= 0;
+    const t = q / p;
+    if (p < 0) { if (t > t1) return false; if (t > t0) t0 = t; } else { if (t < t0) return false; if (t < t1) t1 = t; }
+    return true;
+  };
+  const lo = -MARGIN, hi = 1 + MARGIN;
+  return clip(-dx, a.gx - (c + lo)) && clip(dx, c + hi - a.gx)
+    && clip(-dy, a.gy - (r + lo)) && clip(dy, r + hi - a.gy);
+}
+
+function segmentClear(a, b, blocked, allow) {
+  for (const k of blocked) {
+    if (allow.has(k)) continue;
+    if (hitsTile(a, b, Math.floor(k / GRID), k % GRID)) return false;
+  }
+  return true;
+}
+
+// Rota de a até b: [b] se a reta está livre; senão Dijkstra 8-vizinhos (diagonal só com os
+// dois vizinhos livres) e corte dos cantos (fio esticado). Sem rota: reta, como no M2.
+export function findRoute(a, b, blocked) {
+  const end = { gx: b.gx, gy: b.gy };
+  if (!blocked || !blocked.size) return [end];
+  const sk = tkey(tileOf(a.gx), tileOf(a.gy));
+  const gk = tkey(tileOf(b.gx), tileOf(b.gy));
+  const allow = new Set([sk, gk]);
+  if (segmentClear(a, b, blocked, allow)) return [end];
+  const free = (c, r) => c >= 0 && r >= 0 && c < GRID && r < GRID && (!blocked.has(tkey(c, r)) || allow.has(tkey(c, r)));
+  const dist = new Map([[sk, 0]]);
+  const prev = new Map();
+  const open = new Set([sk]);
+  while (open.size) {
+    let k = null;
+    for (const o of open) if (k === null || dist.get(o) < dist.get(k)) k = o;
+    open.delete(k);
+    if (k === gk) break;
+    const c = Math.floor(k / GRID), r = k % GRID;
+    for (let dc = -1; dc <= 1; dc++) {
+      for (let dr = -1; dr <= 1; dr++) {
+        if (!dc && !dr) continue;
+        const nc = c + dc, nr = r + dr;
+        if (!free(nc, nr)) continue;
+        if (dc && dr && (!free(c + dc, r) || !free(c, r + dr))) continue;
+        const nk = tkey(nc, nr);
+        const nd = dist.get(k) + (dc && dr ? Math.SQRT2 : 1);
+        if (!dist.has(nk) || nd < dist.get(nk) - 1e-9) { dist.set(nk, nd); prev.set(nk, k); open.add(nk); }
+      }
+    }
+  }
+  if (!dist.has(gk)) return [end];
+  const tiles = [];
+  for (let k = prev.get(gk); k !== undefined && k !== sk; k = prev.get(k)) tiles.unshift(k);
+  const pts = [{ gx: a.gx, gy: a.gy },
+    ...tiles.map((k) => ({ gx: Math.floor(k / GRID) + 0.5, gy: (k % GRID) + 0.5 })), end];
+  const out = [];
+  let i = 0;
+  while (i < pts.length - 1) {
+    let j = pts.length - 1;
+    while (j > i + 1 && !segmentClear(pts[i], pts[j], blocked, allow)) j--;
+    out.push(pts[j]);
+    i = j;
+  }
+  return out;
+}
 
 function dirOf(dx, dy, fallback) {
   if (Math.abs(dx) < EPS && Math.abs(dy) < EPS) return fallback;
@@ -39,6 +133,8 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
   let seatSig = null;
   const seatById = new Map();
   const seatTaken = new Map();
+  let blocked = new Set();
+  let blockSig = '';
   const listeners = new Set();
 
   function emit(ev) {
@@ -66,7 +162,8 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
       recipeId: recipe.id,
       phase: 'entering',
       gx: ROOM.door.gx, gy: ROOM.door.gy,
-      path: [], // pontos a percorrer (fora da fila)
+      legs: [], // pontos de passagem a cumprir (fora da fila)
+      path: [], // rota do trecho atual, até legs[0], desviando dos móveis
       wp: 1, // próximo ponto de LINE (na fila)
       dir: 'se', walk: 0, moving: true,
       cup: false, heart: null, seat: null, seatTime: 0, progress: null,
@@ -106,16 +203,38 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
     }
   }
 
-  // Percorre c.path; devolve true ao chegar ao fim.
+  function setLegs(c, legs) {
+    c.legs = legs.slice();
+    c.path = c.legs.length ? findRoute(c, c.legs[0], blocked) : [];
+    c.moving = c.legs.length > 0;
+  }
+
+  // Percorre os trechos (cada um com sua rota); devolve true ao chegar ao fim.
   function movePath(c, dt) {
     let budget = CYCLE.walkSpeed * dt;
-    while (c.path.length && budget > EPS) {
+    while (c.legs.length && budget > EPS) {
+      if (!c.path.length) c.path = findRoute(c, c.legs[0], blocked);
       const p = c.path[0];
       budget = stepTo(c, p, budget);
-      if (Math.abs(c.gx - p.gx) < EPS && Math.abs(c.gy - p.gy) < EPS) c.path.shift();
+      if (Math.abs(c.gx - p.gx) < EPS && Math.abs(c.gy - p.gy) < EPS) {
+        c.path.shift();
+        if (!c.path.length) c.legs.shift();
+      }
     }
-    c.moving = c.path.length > 0;
-    return !c.path.length;
+    c.moving = c.legs.length > 0;
+    return !c.legs.length;
+  }
+
+  // Móvel colocado, movido ou levantado: quem está andando recalcula a rota do trecho atual.
+  function syncBlocked() {
+    let floor;
+    try { floor = layout.sceneLayout().floor || []; } catch (e) { floor = []; }
+    const next = blockedTiles(floor);
+    const sig = [...next].sort((x, y) => x - y).join(',');
+    if (sig === blockSig) return;
+    blockSig = sig;
+    blocked = next;
+    for (const c of customers) if (c.legs.length) c.path = findRoute(c, c.legs[0], blocked);
   }
 
   function startHeart(c) { c.heart = 0; }
@@ -126,23 +245,20 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
     seatTaken.set(seat.id, c.id);
     c.seat = seat.id;
     c.phase = 'toSeat';
-    c.path = viaHub ? [ROOM.hub, seat] : [seat];
-    c.moving = true;
+    setLegs(c, viaHub ? [ROOM.hub, seat] : [seat]);
   }
 
   function leaveFromSeat(c) {
     c.seat = null;
     c.phase = 'leaving';
-    c.path = [ROOM.hub, ROOM.exit, ROOM.entry, ROOM.door];
-    c.moving = true;
+    setLegs(c, [ROOM.hub, ROOM.exit, ROOM.entry, ROOM.door]);
     startHeart(c);
   }
 
   function leaveWithCup(c) {
     c.seat = null;
     c.phase = 'leaving'; // decisão 22: sai com o copo e solta coração
-    c.path = [ROOM.exit, ROOM.entry, ROOM.door];
-    c.moving = true;
+    setLegs(c, [ROOM.exit, ROOM.entry, ROOM.door]);
     startHeart(c);
   }
 
@@ -163,7 +279,7 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
       if (c.seat === null || seatById.has(c.seat)) continue;
       if (c.phase === 'seated') leaveFromSeat(c);
       else if (c.phase === 'toSeat') {
-        const viaHub = c.path[0] === ROOM.hub;
+        const viaHub = c.legs[0] === ROOM.hub;
         const s = freeSeat();
         if (s) goSit(c, s, viaHub);
         else leaveWithCup(c);
@@ -181,6 +297,7 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
     dt = Number(dt);
     if (!(dt > 0)) return;
     dt = Math.min(dt, 0.25); // proteção; o main já limita a 0,05 s
+    syncBlocked();
     syncSeats();
 
     // Chegadas: o tempo só corre com a fila abaixo do máximo.
@@ -261,6 +378,7 @@ export function createSim({ rng = Math.random, store = stateModule, recipes, dec
     line.shift();
     c.cup = true;
     c.progress = null;
+    syncBlocked();
     syncSeats();
     const seat = freeSeat();
     if (seat) {

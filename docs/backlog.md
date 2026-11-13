@@ -55,7 +55,8 @@ Fora do M2 (ficam para o M3/M4): salvar progresso, liberar Mocha, Chocolate quen
 | T-029 | Tela Decorar: cena reduzida, losangos nos ladrilhos livres, escolhido em verde com o móvel transparente, pílula de instrução, tocar em móvel para mover, “Guardar” | G | AG02 (UI) | feita (BRF-028) |
 | T-030 | Loja: abas Salão, Paredes e Cores, grade de 3 colunas, estados do botão (preço, “Colocando”, “Colocar · N”, desativado) | G | AG02 (UI) | feita (BRF-029) |
 | T-031 | Validação do M3: 17 itens comprados, colocados, movidos e guardados; fechar e reabrir mantém tudo | M | AG06 (QA) | feita (BRF-030): passa com ressalvas, ver docs/qa/qa-M3.md |
-| T-032 | Fechamento do M3: versão 0.3.0, PR, tag v0.3.0 | P | AG00 | a fazer |
+| T-055 | QA do M3: clientes desviam dos móveis (D3) e tipos do salvo validados (D1) | M | AG01 (Gameplay) | feita (BRF-031) |
+| T-032 | Fechamento do M3: versão 0.3.0, PR, tag v0.3.0 | P | AG00 | em andamento (versão 0.3.0 na dev; aguarda PR e tag) |
 
 Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 → T-030 → T-031 → T-032.
 
@@ -74,6 +75,7 @@ Ordem: T-023 → T-024 → (T-025 ∥ T-027) → (T-026 ∥ T-028) → T-029 →
 | T-041 | Tela Cardápio: receitas com preço e passos; bloqueadas tracejadas com “Libera com N bebidas” | M | AG02 (UI) | a fazer |
 | T-042 | Ajustes: painel deslizante, música e chuva, nome da cafeteria editável (decisão 16), “Recomeçar do zero” em dois toques | M | AG02 (UI) | a fazer |
 | T-043 | Validação do M4: 8 receitas liberam nos marcos, clientes da casa, rituais, áudio e telas novas | M | AG06 (QA) | a fazer |
+| T-056 | Resto do D1 (tipos sem protótipo em `decor.js` e `regulars`) e impedir mesa cujos lugares fiquem sem acesso | P | AG01 (Gameplay) | a fazer |
 | T-044 | Fechamento do M4: versão 0.4.0, PR, tag v0.4.0 | P | AG00 | a fazer |
 
 Ordem: (T-033 ∥ T-038) → (T-034 ∥ T-037) → (T-035 ∥ T-036) → T-039 → T-040 → T-041 → T-042 → T-043 → T-044.

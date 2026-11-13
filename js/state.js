@@ -28,7 +28,8 @@ const initial = () => ({
 
 // ---------- Validação do salvo ----------
 const SIZE = 6;
-const ITEM = Object.fromEntries(DECOR_ITEMS.map((d) => [d.id, d]));
+// Sem protótipo: só os tipos do catálogo (constructor, __proto__, toString não passam; D1).
+const ITEM = Object.assign(Object.create(null), Object.fromEntries(DECOR_ITEMS.map((d) => [d.id, d])));
 const key = (c, r) => c + ',' + r;
 const RESERVED = new Set(ROOM.reservedTiles.map(([c, r]) => key(c, r)));
 const NO_STOOL = new Set((ROOM.noStoolTiles || []).map(([c, r]) => key(c, r)));

@@ -239,7 +239,9 @@ Módulo novo e não `state.js`: as regras ficam testáveis no Node, e o `state.j
 
 - **Lugares:** `sim` deixa de ler `ROOM.seats` (T-025). Para cada item com `seats: 2`, 2 lugares em âncora + `TABLE_SEATS` (`dx −0,65`, virado para `+gx`; `dx +0,65`, virado para `−gx`), com id `'c,r:i'`. Recalcula no evento `decor`. `ROOM.seats` fica em `data.js` até a T-025 e depois sai.
 - **Móvel com lugar levantado ou guardado [Proposta]:** quem está sentado levanta, solta o coração e sai; quem anda até o lugar troca para outro livre ou sai com o copo. As moedas já entraram; nada é devolvido nem cobrado.
-- Caminhos e pontos da fila não mudam; personagens atravessam móveis como no M2.
+- **Caminhos (T-055):** os pontos de passagem não mudam; cada trecho entre eles (`HUB → banquinho`, `banquinho → HUB`, `HUB → EXIT`…) vira uma rota que desvia dos móveis. Bloqueiam o ladrilho de cada item de chão (tapete não) e, na mesa, os ladrilhos dos 2 banquinhos; origem e destino do trecho são livres. A fila e o corredor são reservados e nunca bloqueiam.
+- Rota (`findRoute` em `sim.js`): reta se livre; senão Dijkstra 8-vizinhos na grade 6 × 6 (diagonal só com os dois vizinhos livres) e corte de cantos por visibilidade. Sem rota (sala cheia), anda em reta como no M2. Mesma velocidade.
+- Móvel colocado, movido ou levantado (`sceneLayout`): quem está andando recalcula a rota do trecho atual.
 - **Gato:** existe só com a caminha colocada (entidade `kind: 'cat'` no M4, ou desenhado pela caminha no M3). Caminha guardada: o gato some. Passeio até ladrilho livre usa `freeSpots`.
 - **Regáveis** (`waterable`): a sede é por item colocado, só em memória (M4).
 
