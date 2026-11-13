@@ -1,7 +1,8 @@
-// Simulação do ciclo do cliente (M2). Não desenha nem toca no DOM.
+// Simulação do ciclo do cliente (M2; lugares das mesas do layout no M3). Não desenha nem toca no DOM.
 // Só avança por update(dt) e sorteia com o rng recebido (roda em Node).
 import { RECIPES, CYCLE, ROOM, CUSTOMER_NAMES, CUSTOMER_LOOKS, BARISTA_LOOK } from './data.js';
 import * as stateModule from './state.js';
+import sharedDecor, { createDecor } from './decor.js';
 
 const HEART_TIME = 1.2; // s, coração subindo
 const EPS = 1e-6;
@@ -17,7 +18,9 @@ function dirOf(dx, dy, fallback) {
   return dy > 0 ? 'sw' : 'ne';
 }
 
-export function createSim({ rng = Math.random, store = stateModule, recipes } = {}) {
+export function createSim({ rng = Math.random, store = stateModule, recipes, decor } = {}) {
+  // Mesma decoração da tela quando usa o state do jogo; senão, uma ligada ao store injetado.
+  const layout = decor || (store === stateModule ? sharedDecor : createDecor({ store }));
   // M2: só as receitas iniciais (decisão 20). A liberação por nível entra no M4.
   const menu = recipes || RECIPES.filter((r) => r.unlockAt === 0);
   const rand = () => { const v = Number(rng()); return v >= 0 && v < 1 ? v : 0; };
@@ -31,7 +34,11 @@ export function createSim({ rng = Math.random, store = stateModule, recipes } = 
   let lastFront = null;
   const customers = []; // todos na loja
   const line = []; // fila, incluindo quem anda até ela; line[0] vai para Q1
-  const seatTaken = ROOM.seats.map(() => null);
+  // Lugares das mesas (decor.seats()), id 'c,r:i'. seatTaken: id do lugar → id do cliente.
+  let seatList = [];
+  let seatSig = null;
+  const seatById = new Map();
+  const seatTaken = new Map();
   const listeners = new Set();
 
   function emit(ev) {
@@ -62,7 +69,7 @@ export function createSim({ rng = Math.random, store = stateModule, recipes } = 
       path: [], // pontos a percorrer (fora da fila)
       wp: 1, // próximo ponto de LINE (na fila)
       dir: 'se', walk: 0, moving: true,
-      cup: false, heart: null, seat: -1, seatTime: 0, progress: null,
+      cup: false, heart: null, seat: null, seatTime: 0, progress: null,
     };
     customers.push(c);
     line.push(c);
@@ -113,6 +120,57 @@ export function createSim({ rng = Math.random, store = stateModule, recipes } = 
 
   function startHeart(c) { c.heart = 0; }
 
+  const freeSeat = () => seatList.find((s) => !seatTaken.has(s.id)) || null;
+
+  function goSit(c, seat, viaHub) {
+    seatTaken.set(seat.id, c.id);
+    c.seat = seat.id;
+    c.phase = 'toSeat';
+    c.path = viaHub ? [ROOM.hub, seat] : [seat];
+    c.moving = true;
+  }
+
+  function leaveFromSeat(c) {
+    c.seat = null;
+    c.phase = 'leaving';
+    c.path = [ROOM.hub, ROOM.exit, ROOM.entry, ROOM.door];
+    c.moving = true;
+    startHeart(c);
+  }
+
+  function leaveWithCup(c) {
+    c.seat = null;
+    c.phase = 'leaving'; // decisão 22: sai com o copo e solta coração
+    c.path = [ROOM.exit, ROOM.entry, ROOM.door];
+    c.moving = true;
+    startHeart(c);
+  }
+
+  // Lê os lugares do layout; mesa levantada ou guardada (arquitetura, M3.4 [Proposta]):
+  // quem está sentado levanta e sai com coração; quem anda até o lugar troca por outro livre
+  // ou sai com o copo. As moedas já entraram; nada muda nelas.
+  function syncSeats() {
+    let list;
+    try { list = layout.seats(); } catch (e) { list = []; }
+    const sig = list.map((s) => s.id + '@' + s.gx + ',' + s.gy).join('|');
+    if (sig === seatSig) return;
+    seatSig = sig;
+    seatList = list;
+    seatById.clear();
+    for (const s of list) seatById.set(s.id, s);
+    for (const id of [...seatTaken.keys()]) if (!seatById.has(id)) seatTaken.delete(id);
+    for (const c of customers) {
+      if (c.seat === null || seatById.has(c.seat)) continue;
+      if (c.phase === 'seated') leaveFromSeat(c);
+      else if (c.phase === 'toSeat') {
+        const viaHub = c.path[0] === ROOM.hub;
+        const s = freeSeat();
+        if (s) goSit(c, s, viaHub);
+        else leaveWithCup(c);
+      } else c.seat = null;
+    }
+  }
+
   function frontInfo() {
     const c = line[0];
     if (!c || c.phase !== 'waiting') return null;
@@ -123,6 +181,7 @@ export function createSim({ rng = Math.random, store = stateModule, recipes } = 
     dt = Number(dt);
     if (!(dt > 0)) return;
     dt = Math.min(dt, 0.25); // proteção; o main já limita a 0,05 s
+    syncSeats();
 
     // Chegadas: o tempo só corre com a fila abaixo do máximo.
     if (line.length < CYCLE.queueMax) {
@@ -144,16 +203,14 @@ export function createSim({ rng = Math.random, store = stateModule, recipes } = 
       if (c.phase === 'toSeat') {
         if (movePath(c, dt)) {
           c.phase = 'seated';
-          c.dir = SEAT_DIR[ROOM.seats[c.seat].dir] || 'se';
+          const s = seatById.get(c.seat);
+          c.dir = (s && SEAT_DIR[s.dir]) || 'se';
         }
       } else if (c.phase === 'seated') {
         c.seatTime -= dt;
         if (c.seatTime <= 0) {
-          seatTaken[c.seat] = null; // libera ao levantar
-          c.seat = -1;
-          c.phase = 'leaving';
-          c.path = [ROOM.hub, ROOM.exit, ROOM.entry, ROOM.door];
-          startHeart(c);
+          seatTaken.delete(c.seat); // libera ao levantar
+          leaveFromSeat(c);
         }
       } else if (c.phase === 'leaving') {
         if (movePath(c, dt)) customers.splice(i, 1);
@@ -204,19 +261,14 @@ export function createSim({ rng = Math.random, store = stateModule, recipes } = 
     line.shift();
     c.cup = true;
     c.progress = null;
-    const seat = seatTaken.indexOf(null);
-    if (seat >= 0) {
-      seatTaken[seat] = c.id;
-      c.seat = seat;
+    syncSeats();
+    const seat = freeSeat();
+    if (seat) {
       c.seatTime = randReal(CYCLE.seatMin, CYCLE.seatMax);
-      c.phase = 'toSeat';
-      c.path = [ROOM.hub, ROOM.seats[seat]];
+      goSit(c, seat, true);
     } else {
-      c.phase = 'leaving'; // decisão 22: sai com o copo e solta coração
-      c.path = [ROOM.exit, ROOM.entry, ROOM.door];
-      startHeart(c);
+      leaveWithCup(c);
     }
-    c.moving = true;
 
     const result = { price, tip, bonus, total };
     lastFront = null;

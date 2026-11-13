@@ -11,7 +11,7 @@ Contratos entre AG01 (`data`, `state`, `sim`), AG02 (telas, `icons`) e AG03 (`ar
 | `js/sim.js` | AG01 | `data`, `state` (injetável) | Não toca no DOM, não desenha, não usa `Math.random` nem relógio direto: só `update(dt)` e o `rng` recebido. Roda em Node para testes |
 | `js/iso.js` | AG03 | nada | Projeção e formas |
 | `js/icons.js` | AG02 | nada | Ícones para HTML e canvas |
-| `js/art.js` | AG03 | `iso`, `icons` | Só desenha o que recebe; nunca importa `data`, `state` nem `sim`, nunca altera estado |
+| `js/art.js` | AG03 | `iso`, `icons`, constantes de `data` | Só desenha o que recebe; lê só constantes de `data` (ex.: `INITIAL_DECOR`, cores); nunca importa `state`, `sim` nem `decor`, nunca altera estado |
 | `js/screens/*.js` | AG02 | `data` (leitura), `state`, `art`, `iso`, `icons` | Recebem `sim` pelo contexto (seção 7); não alteram o estado direto, só pela `sim` |
 | `js/main.js` | compartilhado | telas, `state`, `sim` | Cria a `sim`, roda `sim.update(dt)` em todo quadro (qualquer tela aberta) e troca telas |
 

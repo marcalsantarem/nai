@@ -82,16 +82,15 @@ export const ROOM = {
   hub: { gx: 3.5, gy: 2.5 },
   exit: { gx: 2.1, gy: 4.6 }, // à esquerda do banquinho 1, fora do tapete
   barista: { gx: 2.2, gy: 0.42 },
-  // Lugares fixos do M2; a T-025 passa a derivá-los das mesas (TABLE_SEATS) e remove este campo.
-  seats: [
-    { id: 'stool1', gx: 3.05, gy: 3.8, dir: '+gx' },
-    { id: 'stool2', gx: 4.35, gy: 3.8, dir: '-gx' },
-  ],
   // Ladrilhos (c, r) reservados: sem decoração, nem tapete (arquitetura, M3.2).
   reservedTiles: [
     [0, 0], [1, 0], [2, 0], [3, 0], [0, 1], [1, 1], [2, 1], [3, 1], // balcão
     [0, 4], [0, 5], // porta
     [1, 2], [1, 3], [1, 4], [2, 2], [2, 3], [2, 4], [3, 2], // corredor: fila Q1–Q3, ENTRY, EXIT, HUB
+  ],
+  // Reservados onde nem banquinho de mesa pode ficar (balcão e porta). No corredor pode (decisão 28).
+  noStoolTiles: [
+    [0, 0], [1, 0], [2, 0], [3, 0], [0, 1], [1, 1], [2, 1], [3, 1], [0, 4], [0, 5],
   ],
   // Trechos reservados da parede direita (gy = 0), em gx.
   reservedWall: [
@@ -166,8 +165,9 @@ export const SHOP_TABS = [
   { id: 'cores', name: 'Cores' },
 ];
 
-// Lugares de uma mesa, relativos à âncora (gx/gy). dir como em ROOM.seats.
-// Com a mesa inicial em (3,3) + offset, coincidem com ROOM.seats.
+// Lugares de uma mesa, relativos à âncora (gx/gy). dir: sentido para onde o banquinho está virado.
+// Com a mesa inicial em (3,3) + offset: (3,05, 3,8) e (4,35, 3,8), os banquinhos do M2.
+// Ladrilhos dos banquinhos: (c − 1, r) e (c + 1, r), bloqueados para outros itens (decisão 28).
 export const TABLE_SEATS = [
   { dx: -0.65, dy: 0, dir: '+gx' },
   { dx: 0.65, dy: 0, dir: '-gx' },
@@ -206,6 +206,7 @@ export const DEFAULT_WALL = 'sage';
 export const DEFAULT_FLOOR = 'checker';
 
 // Layout inicial (arquitetura, M3.1): a composição do mockup como itens.
+// Sem a caminha (decisão 29); o quadrinho azul é um 2º Quadro (decisão 27).
 // Balcão, máquina, redoma, pendentes, porta, capacho, quadro-negro e janela são fixos (art.js).
 export const INITIAL_DECOR = {
   items: [
@@ -216,7 +217,6 @@ export const INITIAL_DECOR = {
     { type: 'table', c: 3, r: 3 },
     { type: 'floorLamp', c: 5, r: 3 },
     { type: 'armchair', c: 4, r: 4 },
-    { type: 'catBed', c: 1, r: 5 },
   ],
   wallItems: [
     { type: 'bunting', wall: 'left', pos: 0 },
@@ -224,6 +224,7 @@ export const INITIAL_DECOR = {
     { type: 'stringLights', wall: 'right', pos: 0 },
     { type: 'clock', wall: 'left', pos: 2 },
     { type: 'frame', wall: 'left', pos: 3 },
+    { type: 'frame', wall: 'left', pos: 1 },
   ],
   stock: {},
   wall: DEFAULT_WALL,
