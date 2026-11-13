@@ -349,7 +349,8 @@ svg { display: block; flex: none; }
 /* O círculo do fundo fica 50 px mais alto nesta tela (mockup). */
 body:has(.prep) .backdrop__circle { top: 120px; }
 
-.prep-top {
+.prep-top,
+.decor-top {
   position: relative;
   display: flex;
   align-items: center;
@@ -357,7 +358,8 @@ body:has(.prep) .backdrop__circle { top: 120px; }
   padding: 0 var(--gutter);
   min-height: 48px;
 }
-.prep-top__info {
+.prep-top__info,
+.decor-top__info {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -582,3 +584,153 @@ body:has(.prep) .backdrop__circle { top: 120px; }
   flex: none;
   border-radius: 18px;
 }
+
+/* ---------- Tela Decorar ---------- */
+/* Cores próprias desta tela (mockup 03-decorar). [Proposta]: mover para tokens.css (arquivo compartilhado). */
+.decor {
+  --paper: #fffdf7;      /* fundo do cartão da loja */
+  --paper-edge: #ecd9b8; /* contorno do cartão e da aba inativos */
+  --handle: #d9c3a5;     /* alça do painel */
+  gap: 6px;
+}
+/* O círculo do fundo fica 80 px mais alto e a loja vai até a borda de baixo (mockup). */
+body:has(.decor) .backdrop__circle { top: 90px; }
+body:has(.decor) .app { padding-bottom: 0; }
+
+.decor-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.decor-stage__canvas { display: block; flex: none; }
+/* Linha fixa da altura da pílula (34 px, mockup) abaixo da sala, para a sala não pular. */
+.decor-bar {
+  height: 34px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--gutter);
+}
+.decor-pill {
+  padding: 8px 16px;
+  background: var(--night);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.36;
+  color: var(--cream);
+  text-align: center;
+}
+.decor-pill[hidden], .decor-store[hidden] { display: none; }
+/* “Guardar” (só ao mover) no canto de baixo à direita da sala, sobre o fundo, sem empurrar a pílula. */
+.decor-store {
+  position: absolute;
+  bottom: 42px;
+  right: var(--gutter);
+  z-index: 1;
+  height: var(--touch-min);
+  padding: 0 16px;
+  font-size: 16px;
+}
+
+/* Loja */
+.shop {
+  position: relative;
+  flex: none;
+  padding: 10px var(--gutter) max(var(--safe-bottom), env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--cream);
+  border-top: var(--outline);
+  border-radius: 28px 28px 0 0;
+}
+.shop__handle { width: 44px; height: 5px; border-radius: 3px; background: var(--handle); align-self: center; }
+.shop__tabs { display: flex; gap: 8px; }
+.shop__tab {
+  height: var(--touch-min);
+  padding: 0 18px;
+  background: transparent;
+  border: var(--line) solid var(--paper-edge);
+  border-radius: 22px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+}
+.shop__tab.is-active { background: var(--yellow); border-color: var(--ink); }
+/* Duas fileiras de cartões (312 px no mockup); o resto rola dentro do painel. */
+.shop__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  height: 312px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+  gap: 10px;
+  scrollbar-width: none;
+}
+.shop__grid::-webkit-scrollbar { display: none; }
+/* Telas mais baixas: 1,5 fileira visível, para a sala não encolher demais. */
+@media (max-height: 800px) { .shop__grid { height: 236px; } }
+.shop-card {
+  min-width: 0;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: var(--paper);
+  border: var(--line) solid var(--paper-edge);
+  border-radius: 18px;
+}
+.shop-card.is-active { border-color: var(--ink); }
+.shop-card__thumb { display: block; flex: none; width: 60px; height: 60px; }
+.shop-card__name {
+  max-width: 100%;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: center;
+  text-wrap: balance;
+  hyphens: auto;
+}
+.shop-btn {
+  width: 100%;
+  height: var(--touch-min);
+  margin-top: auto;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--cream);
+  border: var(--outline);
+  border-radius: 13px;
+  box-shadow: 0 3px 0 var(--ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ink);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 60ms, box-shadow 60ms;
+}
+.shop-btn--price, .shop-btn--nocoins { font-size: 17px; }
+.shop-btn--price, .shop-btn--current { background: var(--yellow); }
+.shop-btn--placing { background: var(--green); }
+.shop-btn--stock { background: var(--mint); }
+.shop-btn:disabled { background: var(--disabled); color: var(--night); cursor: default; }
+.shop-btn:disabled .coin { opacity: 0.6; }
+.shop-btn:not(:disabled):active { transform: translateY(var(--press-offset)); box-shadow: 0 0 0 var(--ink); }
+.coin--xs { width: 18px; height: 18px; }

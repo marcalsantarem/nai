@@ -52,8 +52,8 @@ Fora do M2 (ficam para o M3/M4): salvar progresso, liberar Mocha, Chocolate quen
 | T-027 | Arte dos 17 itens em `js/art.js`; a sala passa a ser montada a partir do estado (não fixa); 5 cores de parede e 3 pisos | G | AG03 (Arte) | feita (BRF-024) |
 | T-054 | Abrir espaços de parede na parede direita (decisão 30) | P | AG03 (Arte) | feita (BRF-025): 1 espaço médio novo |
 | T-028 | Miniaturas da loja com as mesmas funções de desenho | M | AG03 (Arte) | feita (BRF-027) |
-| T-029 | Tela Decorar: cena reduzida, losangos nos ladrilhos livres, escolhido em verde com o móvel transparente, pílula de instrução, tocar em móvel para mover, “Guardar” | G | AG02 (UI) | a fazer |
-| T-030 | Loja: abas Salão, Paredes e Cores, grade de 3 colunas, estados do botão (preço, “Colocando”, “Colocar · N”, desativado) | G | AG02 (UI) | a fazer |
+| T-029 | Tela Decorar: cena reduzida, losangos nos ladrilhos livres, escolhido em verde com o móvel transparente, pílula de instrução, tocar em móvel para mover, “Guardar” | G | AG02 (UI) | feita (BRF-028) |
+| T-030 | Loja: abas Salão, Paredes e Cores, grade de 3 colunas, estados do botão (preço, “Colocando”, “Colocar · N”, desativado) | G | AG02 (UI) | feita (BRF-029) |
 | T-031 | Validação do M3: 17 itens comprados, colocados, movidos e guardados; fechar e reabrir mantém tudo | M | AG06 (QA) | a fazer |
 | T-032 | Fechamento do M3: versão 0.3.0, PR, tag v0.3.0 | P | AG00 | a fazer |
 
@@ -85,7 +85,7 @@ Ordem: (T-033 ∥ T-038) → (T-034 ∥ T-037) → (T-035 ∥ T-036) → T-039 �
 | T-045 | Manifesto, metadados da Apple e ícones (192, 512 mascarável, 180) com “Nai's Cafe” | M | AG05 (Plataforma) | a fazer |
 | T-046 | Service worker: offline, rede primeiro na navegação, cache com a versão (decisão 11) | M | AG05 (Plataforma) | a fazer |
 | T-047 | Áreas seguras e gestos do sistema no app instalado; campos de texto com 16 px | P | AG02 (UI) | a fazer |
-| T-048 | Animações de toque e acabamento: botões, moedas, transições de tela | M | AG02 (UI) | a fazer |
+| T-048 | Animações de toque e acabamento: botões, moedas, transições de tela; mover as cores locais de `.prep` e `.decor` para `tokens.css` | M | AG02 (UI) | a fazer |
 | T-049 | Desempenho: 60 fps em iPhone de 2020 em diante com a sala cheia | M | AG03 (Arte) | a fazer |
 | T-050 | Teste no iPhone: instalado, tela cheia, modo avião, som depois de trocar de app, chave de silêncio | M | Dono + AG06 (QA) | a fazer |
 | T-051 | Validação final: todos os critérios de aceite da especificação | M | AG06 (QA) | a fazer |

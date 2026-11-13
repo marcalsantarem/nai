@@ -36,3 +36,5 @@ Ao mudar uma decisão, atualize esta tabela e, se for o caso, o `CLAUDE.md`.
 | 29 | Caminha do gato | Decidido | A sala começa sem a caminha; o gato chega quando ela for comprada (60 moedas, limite 1) | Dono, 2026-11-13 |
 | 30 | Espaços de parede | Decidido | Esquerda: 2 altos e 4 médios. Direita: 1 médio novo entre o quadro-negro e a janela, que foram levemente afastados (diferença pequena do mockup aceita). Na sala inicial sobram 2 médios e 1 alto livres (T-054) | Dono, 2026-11-13 |
 | 31 | Ideias para depois do v1.0 | Proposta | Sala que cresce como recompensa (ex.: ampliação com X bebidas servidas); câmera móvel com zoom (hoje fixa; exige rever a regra de só toque único) | Dono, 2026-11-13 |
+| 32 | Cores de parede e piso | Decidido | Tons propostos para rosa, azul céu, amarelo manteiga, lilás, madeira clara e madeira escura aprovados como estão em `js/data.js` | Dono, 2026-11-13 |
+| 33 | Tapete sob outro móvel | Decidido | O toque levanta o móvel de cima; para mover o tapete, primeiro tira-se o móvel de cima | AG00, 2026-11-13 |

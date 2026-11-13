@@ -3,9 +3,10 @@ import * as state from './state.js';
 import { createSim } from './sim.js';
 import cafeteria from './screens/cafeteria.js';
 import preparo from './screens/preparo.js';
+import decorar from './screens/decorar.js';
 
 // Registro de telas: cada uma tem enter(root, ctx), exit() e update(dt).
-const screens = { cafeteria, preparo };
+const screens = { cafeteria, preparo, decorar };
 
 const MAX_DT = 0.05; // 50 ms
 const app = document.getElementById('app');
