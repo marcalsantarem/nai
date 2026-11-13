@@ -227,7 +227,7 @@ export const INITIAL_DECOR = {
     { type: 'stringLights', wall: 'right', pos: 0 },
     { type: 'clock', wall: 'left', pos: 2 },
     { type: 'frame', wall: 'left', pos: 3 },
-    { type: 'frame', wall: 'left', pos: 1 },
+    { type: 'frame', wall: 'left', pos: 1, variant: 'small' }, // quadrinho azul (decisão 27)
   ],
   stock: {},
   wall: DEFAULT_WALL,

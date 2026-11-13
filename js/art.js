@@ -59,24 +59,28 @@ const findById = (list, id, fallback) => list.find((e) => e.id === id) || list.f
 const PLANK_ROWS = 3;   // tábuas por ladrilho, ao longo de gy
 const PLANK_LEN = 1.5;  // comprimento da tábua em ladrilhos
 export function drawFloor(ctx, floor = DEFAULT_FLOOR) {
-  const f0 = typeof floor === 'string' || !floor ? findById(FLOORS, floor, DEFAULT_FLOOR) : floor;
-  const l = project(0, GRID), f = project(GRID, GRID), r = project(GRID, 0);
+  paintFloor(ctx, typeof floor === 'string' || !floor ? findById(FLOORS, floor, DEFAULT_FLOOR) : floor, GRID);
+}
+
+// Piso de n × n ladrilhos a partir de (0, 0), com as bordas. Serve a sala (n = GRID) e a miniatura.
+function paintFloor(ctx, f0, n) {
+  const l = project(0, n), f = project(n, n), r = project(n, 0);
   poly(ctx, [l.x, l.y, f.x, f.y, f.x, f.y + 10, l.x, l.y + 10], '#8a5a3c');
   poly(ctx, [r.x, r.y, f.x, f.y, f.x, f.y + 10, r.x, r.y + 10], '#6f452d');
   if (f0.pattern === 'planks') {
     const d = 1 / PLANK_ROWS;
-    for (let k = 0; k < GRID * PLANK_ROWS; k++) {
+    for (let k = 0; k < n * PLANK_ROWS; k++) {
       const shift = ((k * 2) % 3) * (PLANK_LEN / 3);
-      for (let i = -1, g = -shift; g < GRID; i++, g += PLANK_LEN) {
-        const g0 = Math.max(0, g), g1 = Math.min(GRID, g + PLANK_LEN);
+      for (let i = -1, g = -shift; g < n; i++, g += PLANK_LEN) {
+        const g0 = Math.max(0, g), g1 = Math.min(n, g + PLANK_LEN);
         if (g1 <= g0) continue;
         tile(ctx, g0, k * d, (i + k) % 2 ? f0.b : f0.a, f0.grout, g1 - g0, d);
       }
     }
     return;
   }
-  for (let gx = 0; gx < GRID; gx++) {
-    for (let gy = 0; gy < GRID; gy++) {
+  for (let gx = 0; gx < n; gx++) {
+    for (let gy = 0; gy < n; gy++) {
       tile(ctx, gx, gy, (gx + gy) % 2 ? f0.b : f0.a, f0.grout);
     }
   }
@@ -830,6 +834,80 @@ export function initialLayout() {
     };
   }
   return initial;
+}
+
+// ---------- Miniaturas da loja ----------
+// Convenção de DPR: o chamador cria o canvas com size × dpr px, aplica ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+// e passa size em px CSS. As funções não limpam o canvas e restauram o estado do contexto.
+
+// Enquadramento por tipo: [cx, cy, lado] em coordenadas da cena, relativos à âncora do item (0, 0).
+// Os seis do mockup vêm dos viewBox de 03-decorar.html (âncora em (0, 15)); o tapete do mockup usa
+// escala 0,35, então o lado é 54 / 0,35. Os demais seguem a regra do mockup: centro na caixa do desenho,
+// lado ≈ max(altura × 1,03, largura × 1,55) (parede: folga de ~15%).
+// Itens de parede: no plano local da parede, já com THUMB_SKEW aplicado.
+const THUMB_VIEW = {
+  plant: [0, -18, 48],
+  monstera: [0, -31, 68],
+  armchair: [0, -21, 62],
+  floorLamp: [0, -41, 92],
+  rug: [0, 0, 154],
+  catBed: [0, -5, 54],
+  pouf: [0, -6, 40],
+  flowerTable: [0, -22, 56],
+  recordPlayer: [0, -12, 48],
+  table: [0, -12, 85],
+  bookshelf: [0, -36, 100],
+  bunting: [0, -116, 100],
+  stringLights: [0, -117, 106],
+  frame: [0, -86, 40],
+  hangingPlant: [0, -83, 53],
+  clock: [0, -98, 32],
+  cupShelf: [0, -78, 45],
+};
+const THUMB_SKEW = 0.25; // parede vista levemente de lado (a parede da sala usa 0,5)
+
+// Item centrado num quadrado size × size, com o mesmo desenho da sala (drawItem).
+// opts vai para drawItem ({ time, now, music, variant }); sem opts, o quadro é a paisagem e o relógio marca 3:00.
+export function drawItemThumb(ctx, type, size, opts = {}) {
+  const def = ITEM.get(type);
+  const view = THUMB_VIEW[type];
+  if (!def || !view) return;
+  const [cx, cy, side] = view;
+  const k = size / side;
+  ctx.save();
+  ctx.translate(size / 2, size / 2);
+  ctx.scale(k, k);
+  if (def.where === 'wall') ctx.transform(1, THUMB_SKEW, 0, 1, 0, 0);
+  ctx.translate(-cx, -cy);
+  drawItem(ctx, type, 0, 0, opts);
+  ctx.restore();
+}
+
+// Canto de parede (2 ladrilhos de cada lado, altura cheia) com listras, lambri e rodapé.
+// wallColor = id ou objeto de WALL_COLORS.
+const WALL_THUMB_LEN = 60;
+export function drawWallThumb(ctx, wallColor, size) {
+  const c = typeof wallColor === 'string' || !wallColor ? findById(WALL_COLORS, wallColor, DEFAULT_WALL) : wallColor;
+  const k = size / 160;
+  ctx.save();
+  ctx.translate(size / 2, size / 2);
+  ctx.scale(k, k);
+  ctx.translate(0, 47);
+  wall(ctx, 'left', { ...WALL_LEFT, ...c.left }, { length: WALL_THUMB_LEN });
+  wall(ctx, 'right', { ...WALL_RIGHT, ...c.right }, { length: WALL_THUMB_LEN });
+  ctx.restore();
+}
+
+// Losango de piso (2 × 2 ladrilhos, com as bordas). floor = id ou objeto de FLOORS.
+export function drawFloorThumb(ctx, floor, size) {
+  const f0 = typeof floor === 'string' || !floor ? findById(FLOORS, floor, DEFAULT_FLOOR) : floor;
+  const k = size / 132;
+  ctx.save();
+  ctx.translate(size / 2, size / 2);
+  ctx.scale(k, k);
+  ctx.translate(0, -35);
+  paintFloor(ctx, f0, 2);
+  ctx.restore();
 }
 
 // ---------- Composição ----------

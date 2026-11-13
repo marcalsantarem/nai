@@ -204,7 +204,7 @@ export function createDecor({ store = stateModule } = {}) {
       const list = floor ? items() : wallItems();
       let done = false;
       const moved = list.map((it) => {
-        if (!done && match(it)) { done = true; return next; }
+        if (!done && match(it)) { done = true; return { ...it, ...next }; } // mantém variant
         return it;
       });
       if (floor) patch.items = moved; else patch.wallItems = moved;
@@ -291,7 +291,10 @@ export function createDecor({ store = stateModule } = {}) {
       floor: liveItems().filter((it) => ITEM[it.type])
         .map((it) => ({ type: it.type, c: it.c, r: it.r, ...anchorOf(it.type, it.c, it.r) })),
       wall: liveWallItems().filter((it) => ITEM[it.type])
-        .map((it) => ({ type: it.type, wall: it.wall, pos: it.pos, band: ITEM[it.type].band })),
+        .map((it) => ({
+          type: it.type, wall: it.wall, pos: it.pos, band: ITEM[it.type].band,
+          ...(it.variant ? { variant: it.variant } : {}),
+        })),
     };
   }
 
