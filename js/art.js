@@ -235,8 +235,9 @@ function drawRightWall(ctx, time, colors) {
   wall(ctx, 'right', colors ? { ...WALL_RIGHT, ...colors.right } : WALL_RIGHT);
   ctx.save();
   wallTransform(ctx, 'right');
-  drawChalkboard(ctx, 18, -112, "Nai's Cafe");
-  drawWindow(ctx, 100, -114, time);
+  // Afastados do mockup (18 e 100) para abrir o espaço médio entre eles (decisão 30; ROOM.reservedWall).
+  drawChalkboard(ctx, 6, -112, "Nai's Cafe");
+  drawWindow(ctx, 105, -114, time);
   ctx.restore();
 }
 
@@ -244,7 +245,7 @@ function drawRightWall(ctx, time, colors) {
 
 // Luz da janela no chão.
 export function drawWindowLight(ctx) {
-  const p = [project(3.5, 0.1), project(5.5, 0.1), project(5.9, 2.4), project(3.9, 2.4)];
+  const p = [project(3.67, 0.1), project(5.67, 0.1), project(6.07, 2.4), project(4.07, 2.4)];
   withAlpha(ctx, 0.3, () => poly(ctx, p.flatMap((q) => [q.x, q.y]), GLOW));
 }
 
@@ -802,8 +803,11 @@ export function anchorOf(type, c, r) {
 const bandOf = (type) => (ITEM.get(type) && ITEM.get(type).band) || 'mid';
 
 // Centro do espaço de parede, em x do plano local da parede.
+// WALL_SLOTS[band].at[side][pos] (em ladrilhos) substitui a regra do span.
 function slotX(side, band, pos) {
-  const u = (pos + 0.5) * (WALL_SLOTS[band] || WALL_SLOTS.mid).span * 30;
+  const sl = WALL_SLOTS[band] || WALL_SLOTS.mid;
+  const at = sl.at && sl.at[side] && sl.at[side][pos];
+  const u = (at != null ? at : (pos + 0.5) * sl.span) * 30;
   return side === 'left' ? -u : u;
 }
 // Retângulo de destaque do espaço (plano local): [x, y, w, h].

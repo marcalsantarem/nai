@@ -11,3 +11,8 @@
 | M5 | v1.0.0 | Presente | PWA completo, ícones, offline, áreas seguras, animações de toque, teste no iPhone |
 
 Todo marco fecha com uma task de validação (AG06 (QA)) e uma de fechamento (versão, PR, tag) do AG00.
+
+## Depois do v1.0 (ideias, decisão 31)
+
+- Sala que cresce como recompensa (começa 6 × 6 e ganha ampliação por progresso).
+- Câmera móvel com zoom.

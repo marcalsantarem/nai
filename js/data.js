@@ -92,10 +92,11 @@ export const ROOM = {
   noStoolTiles: [
     [0, 0], [1, 0], [2, 0], [3, 0], [0, 1], [1, 1], [2, 1], [3, 1], [0, 4], [0, 5],
   ],
-  // Trechos reservados da parede direita (gy = 0), em gx.
+  // Trechos reservados da parede direita (gy = 0), em gx. Quadro-negro e janela afastados
+  // para abrir um espaço médio entre eles (decisão 30; WALL_SLOTS.mid.at).
   reservedWall: [
-    { id: 'board', from: 0.6, to: 2.8 },
-    { id: 'window', from: 3.3, to: 5.9 },
+    { id: 'board', from: 0.2, to: 2.4 },
+    { id: 'window', from: 3.35, to: 6 },
   ],
 };
 
@@ -179,9 +180,11 @@ export const TABLE_COLUMNS = { min: 1, max: 4 };
 // Espaços de parede [Proposta]. Parede 'left' (gx = 0, ao longo de gy; porta) e 'right' (gy = 0, ao longo de gx).
 // span: largura de cada posição em ladrilhos; a posição p cobre [p * span, (p + 1) * span).
 // reserved: posições sem decoração. Faixa média da direita: quadro-negro e janela (ROOM.reservedWall).
+// at: centro de uma posição fora da regra do span, em ladrilhos ao longo da parede (só desenho; decor.js ignora).
+// Direita: só cabe 1 espaço médio, entre o quadro-negro e a janela (decisão 30).
 export const WALL_SLOTS = {
   high: { count: 2, span: 3, reserved: { left: [], right: [] } },
-  mid: { count: 6, span: 1, reserved: { left: [4, 5], right: [0, 1, 2, 3, 4, 5] } },
+  mid: { count: 6, span: 1, reserved: { left: [4, 5], right: [0, 1, 3, 4, 5] }, at: { right: { 2: 2.95 } } },
 };
 
 // Cores de parede, gratuitas. 'sage' é a sala atual (especificação, Cores da sala).

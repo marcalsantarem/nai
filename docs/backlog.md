@@ -50,6 +50,7 @@ Fora do M2 (ficam para o M3/M4): salvar progresso, liberar Mocha, Chocolate quen
 | T-025 | Regras: comprar, colocar, mover, guardar no estoque, ocupação (tapete por baixo, 1 espaço de parede), reservados, limite da caminha, mesa nova = +2 lugares na simulação; ajustar `INITIAL_DECOR` às decisões 27 e 29 (2º Quadro, sem caminha) | M | AG01 (Gameplay) | feita (BRF-023) |
 | T-026 | Salvamento em `localStorage` (`nais-cafe-v1`): moedas, servidas, contagem, parede, piso, itens, estoque; tolerante a falha; Quadro com `variant` salvo (o 2º é `'small'`) | M | AG01 (Gameplay) | a fazer |
 | T-027 | Arte dos 17 itens em `js/art.js`; a sala passa a ser montada a partir do estado (não fixa); 5 cores de parede e 3 pisos | G | AG03 (Arte) | feita (BRF-024) |
+| T-054 | Abrir espaços de parede na parede direita (decisão 30) | P | AG03 (Arte) | feita (BRF-025): 1 espaço médio novo |
 | T-028 | Miniaturas da loja com as mesmas funções de desenho | M | AG03 (Arte) | a fazer |
 | T-029 | Tela Decorar: cena reduzida, losangos nos ladrilhos livres, escolhido em verde com o móvel transparente, pílula de instrução, tocar em móvel para mover, “Guardar” | G | AG02 (UI) | a fazer |
 | T-030 | Loja: abas Salão, Paredes e Cores, grade de 3 colunas, estados do botão (preço, “Colocando”, “Colocar · N”, desativado) | G | AG02 (UI) | a fazer |

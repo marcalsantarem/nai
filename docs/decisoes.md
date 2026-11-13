@@ -34,5 +34,5 @@ Ao mudar uma decisão, atualize esta tabela e, se for o caso, o `CLAUDE.md`.
 | 27 | Quadrinho azul | Decidido | Fica na sala inicial como um 2º item “Quadro”, que pode ser movido e guardado | Dono, 2026-11-13 |
 | 28 | Banquinhos | Decidido | Os ladrilhos dos banquinhos ao lado da mesa ficam bloqueados para outros itens | Dono, 2026-11-13 |
 | 29 | Caminha do gato | Decidido | A sala começa sem a caminha; o gato chega quando ela for comprada (60 moedas, limite 1) | Dono, 2026-11-13 |
-| 30 | Espaços de parede | Decidido | 4 altos e 4 médios na parede esquerda; rever se ficar apertado no teste | Dono, 2026-11-13 |
-
+| 30 | Espaços de parede | Decidido | Esquerda: 2 altos e 4 médios. Direita: 1 médio novo entre o quadro-negro e a janela, que foram levemente afastados (diferença pequena do mockup aceita). Na sala inicial sobram 2 médios e 1 alto livres (T-054) | Dono, 2026-11-13 |
+| 31 | Ideias para depois do v1.0 | Proposta | Sala que cresce como recompensa (ex.: ampliação com X bebidas servidas); câmera móvel com zoom (hoje fixa; exige rever a regra de só toque único) | Dono, 2026-11-13 |
